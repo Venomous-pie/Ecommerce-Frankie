@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.name }} - TrendFlick{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'products:category' product.category %}">{{ product.category|title }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Product Images -->
+        <div class="col-lg-6 mb-4">
+            <div class="product-images">
+                <img src="{{ product.image.url }}" class="img-fluid rounded-3" alt="{{ product.name }}">
+            </div>
+        </div>
+
+        <!-- Product Details -->
+        <div class="col-lg-6">
+            <h1 class="mb-3">{{ product.name }}</h1>
+            <div class="mb-3">
+                <span class="h3">${{ product.price }}</span>
+                {% if product.compare_at_price %}
+                    <span class="text-muted text-decoration-line-through ms-2">${{ product.compare_at_price }}</span>
+                    <span class="badge bg-danger ms-2">Save {{ product.discount_percentage }}%</span>
+                {% endif %}
+            </div>
+
+            <p class="text-muted mb-4">{{ product.description }}</p>
+
+            <form id="addToCartForm" class="mb-4">
+                {% csrf_token %}
+                {% if product.sizes %}
+                    <div class="mb-4">
+                        <label class="form-label">Size</label>
+                        <div class="size-selector">
+                            {% for size in product.sizes %}
+                                <input type="radio" class="btn-check" name="size" id="size-{{ size }}" value="{{ size }}" {% if forloop.first %}checked{% endif %}>
+                                <label class="btn btn-outline-dark me-2" for="size-{{ size }}">{{ size }}</label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                <div class="mb-4">
+                    <label class="form-label">Quantity</label>
+                    <div class="input-group" style="width: 150px;">
+                        <button type="button" class="btn btn-outline-dark" onclick="updateQuantity(-1)">-</button>
+                        <input type="number" class="form-control text-center" id="quantity" name="quantity" value="1" min="1" max="10">
+                        <button type="button" class="btn btn-outline-dark" onclick="updateQuantity(1)">+</button>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 mb-4">
+                    <button type="submit" class="btn btn-dark btn-lg flex-grow-1">Add to Cart</button>
+                    <button type="button" class="btn btn-outline-dark btn-lg" onclick="addToWishlist({{ product.id }})">
+                        <i class="far fa-heart"></i>
+                    </button>
+                </div>
+            </form>
+
+            <!-- Product Features -->
+            <div class="border-top pt-4">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-truck text-primary me-2"></i>
+                            <div>
+                                <h6 class="mb-0">Free Shipping</h6>
+                                <small class="text-muted">On orders over $100</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-undo text-primary me-2"></i>
+                            <div>
+                                <h6 class="mb-0">Easy Returns</h6>
+                                <small class="text-muted">30-day return policy</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Description Tabs -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <ul class="nav nav-tabs" id="productTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="description-tab" data-bs-toggle="tab" data-bs-target="#description" type="button" role="tab">Description</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="shipping-tab" data-bs-toggle="tab" data-bs-target="#shipping" type="button" role="tab">Shipping & Returns</button>
+                </li>
+            </ul>
+            <div class="tab-content p-4 border border-top-0" id="productTabsContent">
+                <div class="tab-pane fade show active" id="description" role="tabpanel">
+                    {{ product.full_description|linebreaks }}
+                </div>
+                <div class="tab-pane fade" id="shipping" role="tabpanel">
+                    <h5>Shipping Information</h5>
+                    <p>We offer free standard shipping on all orders over $100. For orders under $100, shipping costs are calculated at checkout based on your location.</p>
+                    
+                    <h5 class="mt-4">Return Policy</h5>
+                    <p>We want you to be completely satisfied with your purchase. If you're not happy with your order, you can return it within 30 days for a full refund.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Products -->
+    <section class="mt-5">
+        <h3 class="mb-4">You May Also Like</h3>
+        <div class="row" id="relatedProducts">
+            <!-- Related products will be loaded dynamically via JavaScript -->
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function updateQuantity(change) {
+        const input = document.getElementById('quantity');
+        const newValue = parseInt(input.value) + change;
+        if (newValue >= 1 && newValue <= 10) {
+            input.value = newValue;
+        }
+    }
+
+    document.getElementById('addToCartForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const size = document.querySelector('input[name="size"]:checked')?.value;
+        const quantity = parseInt(document.getElementById('quantity').value);
+        addToCart({{ product.id }}, size, quantity);
+    });
+</script>
+{% endblock %} 

@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}TrendFlick - Home{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">Discover Your Style</h1>
+                <p class="lead mb-4">Shop the latest trends in fashion and accessories at TrendFlick. Find your perfect look today!</p>
+                <a href="{% url 'products:category' 'all' %}" class="btn btn-dark btn-lg rounded-pill">Shop Now</a>
+            </div>
+            <div class="col-lg-6">
+                <img src="{% static 'img/hero-image.jpg' %}" alt="Fashion Collection" class="img-fluid rounded-3">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Categories -->
+<section class="py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">Shop by Category</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <a href="{% url 'products:category' 'clothes' %}" class="text-decoration-none">
+                    <div class="card h-100">
+                        <img src="{% static 'img/category-clothes.jpg' %}" class="card-img-top" alt="Clothes">
+                        <div class="card-body text-center">
+                            <h5 class="card-title text-dark">Clothes</h5>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="{% url 'products:category' 'shoes' %}" class="text-decoration-none">
+                    <div class="card h-100">
+                        <img src="{% static 'img/category-shoes.jpg' %}" class="card-img-top" alt="Shoes">
+                        <div class="card-body text-center">
+                            <h5 class="card-title text-dark">Shoes</h5>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="{% url 'products:category' 'accessories' %}" class="text-decoration-none">
+                    <div class="card h-100">
+                        <img src="{% static 'img/category-accessories.jpg' %}" class="card-img-top" alt="Accessories">
+                        <div class="card-body text-center">
+                            <h5 class="card-title text-dark">Accessories</h5>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Trending Products -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">Trending Now</h2>
+        <div class="row" id="trendingProducts">
+            <!-- Products will be loaded dynamically via JavaScript -->
+        </div>
+    </div>
+</section>
+
+<!-- Features -->
+<section class="py-5">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="text-center">
+                    <i class="fas fa-truck fa-3x mb-3 text-primary"></i>
+                    <h5>Free Shipping</h5>
+                    <p class="text-muted">On orders over $100</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="text-center">
+                    <i class="fas fa-undo fa-3x mb-3 text-primary"></i>
+                    <h5>Easy Returns</h5>
+                    <p class="text-muted">30-day return policy</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="text-center">
+                    <i class="fas fa-lock fa-3x mb-3 text-primary"></i>
+                    <h5>Secure Payment</h5>
+                    <p class="text-muted">100% secure checkout</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="text-center">
+                    <i class="fas fa-headset fa-3x mb-3 text-primary"></i>
+                    <h5>24/7 Support</h5>
+                    <p class="text-muted">Always here to help</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Newsletter -->
+<section class="newsletter-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-6 text-center">
+                <h3 class="mb-4">Subscribe to Our Newsletter</h3>
+                <p class="text-muted mb-4">Get updates about new products and special offers!</p>
+                <form class="newsletter-form" action="{% url 'core:newsletter_subscribe' %}" method="POST">
+                    {% csrf_token %}
+                    <div class="input-group">
+                        <input type="email" class="form-control" placeholder="Enter your email" required>
+                        <button class="btn btn-dark" type="submit">Subscribe</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %} 

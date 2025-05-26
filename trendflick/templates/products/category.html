@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load product_filters %}
+
+{% block title %}{{ category|title }} - TrendFlick{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Category Header -->
+    <header class="text-center mb-5">
+        <h1 class="display-4 mb-3">{{ category|title }}</h1>
+        {% if category == 'all' %}
+            <p class="lead">Explore our complete collection</p>
+        {% elif category == 'sale' %}
+            <p class="lead">Great deals on trending items</p>
+        {% else %}
+            <p class="lead">Latest {{ category }} collection</p>
+        {% endif %}
+    </header>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Filters</h5>
+                    <form method="GET">
+                        <!-- Price Range -->
+                        <div class="mb-4">
+                            <label class="form-label">Price Range</label>
+                            <div class="d-flex gap-2">
+                                <input type="number" class="form-control" name="min_price" placeholder="Min" min="0" value="{{ request.GET.min_price }}">
+                                <input type="number" class="form-control" name="max_price" placeholder="Max" min="0" value="{{ request.GET.max_price }}">
+                            </div>
+                        </div>
+
+                        <!-- Sort By -->
+                        <div class="mb-4">
+                            <label class="form-label">Sort By</label>
+                            <select class="form-select" name="sort">
+                                <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Newest First</option>
+                                <option value="price_low" {% if current_sort == 'price_low' %}selected{% endif %}>Price: Low to High</option>
+                                <option value="price_high" {% if current_sort == 'price_high' %}selected{% endif %}>Price: High to Low</option>
+                                <option value="name" {% if current_sort == 'name' %}selected{% endif %}>Name: A to Z</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-dark w-100">Apply Filters</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Products Grid -->
+        <div class="col-md-9">
+            {% if products %}
+                <div class="row g-4">
+                    {% for product in products %}
+                        <div class="col-md-4">
+                            <div class="product-card card h-100">
+                                <div class="position-relative">
+                                    <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                                    <div class="product-overlay">
+                                        <a href="{% url 'products:detail' product.id %}" class="btn btn-light">View Details</a>
+                                    </div>
+                                    <button class="wishlist-btn" onclick="addToWishlist({{ product.id }})">
+                                        <i class="far fa-heart"></i>
+                                    </button>
+                                    {% if product.discount_percentage %}
+                                        <span class="badge bg-danger position-absolute top-0 start-0 m-2">
+                                            -{{ product.discount_percentage }}%
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ product.name }}</h5>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <span class="fw-bold">${{ product.price }}</span>
+                                            {% if product.compare_at_price %}
+                                                <small class="text-muted text-decoration-line-through ms-2">
+                                                    ${{ product.compare_at_price }}
+                                                </small>
+                                            {% endif %}
+                                        </div>
+                                        <button class="btn btn-outline-dark btn-sm" onclick="addToCart({{ product.id }})">
+                                            <i class="fas fa-shopping-cart"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination -->
+                {% if products.has_other_pages %}
+                    <nav class="mt-5" aria-label="Page navigation">
+                        <ul class="pagination justify-content-center">
+                            {% if products.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ products.previous_page_number }}{% if current_sort != 'newest' %}&sort={{ current_sort }}{% endif %}">Previous</a>
+                                </li>
+                            {% endif %}
+
+                            {% for num in products.paginator.page_range %}
+                                <li class="page-item {% if products.number == num %}active{% endif %}">
+                                    <a class="page-link" href="?page={{ num }}{% if current_sort != 'newest' %}&sort={{ current_sort }}{% endif %}">{{ num }}</a>
+                                </li>
+                            {% endfor %}
+
+                            {% if products.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ products.next_page_number }}{% if current_sort != 'newest' %}&sort={{ current_sort }}{% endif %}">Next</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-box-open fa-4x text-muted mb-4"></i>
+                    <h3>No products found</h3>
+                    <p class="text-muted">We couldn't find any products in this category.</p>
+                    <a href="{% url 'products:category' 'all' %}" class="btn btn-dark">View All Products</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

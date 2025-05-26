@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}Shopping Cart - TrendFlick{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4">Shopping Cart</h1>
+
+    {% if cart_items %}
+        <div class="row">
+            <!-- Cart Items -->
+            <div class="col-lg-8">
+                {% for item in cart_items %}
+                    <div class="cart-item">
+                        <div class="row align-items-center">
+                            <div class="col-md-3">
+                                <img src="{{ item.product.image.url }}" class="img-fluid rounded" alt="{{ item.product.name }}">
+                            </div>
+                            <div class="col-md-9">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h5 class="mb-0">
+                                        <a href="{% url 'products:detail' item.product.id %}" class="text-dark text-decoration-none">
+                                            {{ item.product.name }}
+                                        </a>
+                                    </h5>
+                                    <button type="button" class="btn-close" onclick="removeFromCart({{ item.product.id }}, '{{ item.size }}')"></button>
+                                </div>
+                                {% if item.size %}
+                                    <p class="text-muted mb-2">Size: {{ item.size }}</p>
+                                {% endif %}
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        <div class="input-group quantity-input me-3">
+                                            <button type="button" class="btn btn-outline-dark" onclick="updateCartQuantity({{ item.product.id }}, '{{ item.size }}', {{ item.quantity|add:'-1' }})">-</button>
+                                            <input type="number" class="form-control text-center" value="{{ item.quantity }}" min="1" max="10" readonly>
+                                            <button type="button" class="btn btn-outline-dark" onclick="updateCartQuantity({{ item.product.id }}, '{{ item.size }}', {{ item.quantity|add:'1' }})">+</button>
+                                        </div>
+                                        <span class="text-muted">x ${{ item.product.price }}</span>
+                                    </div>
+                                    <span class="fw-bold">${{ item.total }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Order Summary -->
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-4">Order Summary</h5>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Subtotal</span>
+                            <span>${{ subtotal }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Shipping</span>
+                            <span>{% if subtotal >= 100 %}Free{% else %}$10.00{% endif %}</span>
+                        </div>
+                        {% if discount %}
+                            <div class="d-flex justify-content-between mb-2 text-success">
+                                <span>Discount</span>
+                                <span>-${{ discount }}</span>
+                            </div>
+                        {% endif %}
+                        <hr>
+                        <div class="d-flex justify-content-between mb-4">
+                            <span class="fw-bold">Total</span>
+                            <span class="fw-bold">${{ total }}</span>
+                        </div>
+                        
+                        <!-- Promo Code -->
+                        <form class="mb-4">
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Promo code">
+                                <button class="btn btn-outline-dark" type="submit">Apply</button>
+                            </div>
+                        </form>
+
+                        <a href="{% url 'orders:checkout' %}" class="btn btn-dark w-100">Proceed to Checkout</a>
+                    </div>
+                </div>
+
+                <!-- Continue Shopping -->
+                <a href="{% url 'products:category' 'all' %}" class="btn btn-outline-dark w-100 mt-3">
+                    <i class="fas fa-arrow-left me-2"></i>Continue Shopping
+                </a>
+            </div>
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-shopping-cart fa-4x text-muted mb-4"></i>
+            <h3>Your cart is empty</h3>
+            <p class="text-muted mb-4">Looks like you haven't added anything to your cart yet.</p>
+            <a href="{% url 'products:category' 'all' %}" class="btn btn-dark">Start Shopping</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function updateCartQuantity(productId, size, newQuantity) {
+        if (newQuantity >= 1 && newQuantity <= 10) {
+            updateQuantity(productId, size, newQuantity);
+        }
+    }
+</script>
+{% endblock %} 
