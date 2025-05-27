@@ -33,7 +33,7 @@
                         <a class="nav-link" href="{% url 'products:category' 'all' %}">Shop</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'core:contact' %}">Contact</a>
+                        <a class="nav-link" href="{% url 'core:about' %}">About</a>
                     </li>
                 </ul>
                 <form class="d-flex me-3" role="search" action="{% url 'products:search' %}" method="GET">
@@ -100,7 +100,7 @@
                     <h6 class="text-white mb-4">Quick Links</h6>
                     <ul class="footer-links">
                         <li class="mb-2"><a href="{% url 'core:about' %}">About Us</a></li>
-                        <li class="mb-2"><a href="{% url 'core:contact' %}">Contact Us</a></li>
+                        <li class="mb-2"><a href="{% url 'core:about' %}">About Us</a></li>
                         <li class="mb-2"><a href="{% url 'core:faq' %}">FAQ</a></li>
                         <li class="mb-2"><a href="{% url 'core:privacy' %}">Privacy Policy</a></li>
                     </ul>
