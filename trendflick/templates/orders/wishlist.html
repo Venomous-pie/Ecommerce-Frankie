@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Wishlist - TrendFlick{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1 class="mb-4">My Wishlist <span class="text-danger">&hearts;</span></h1>
+    {% if wishlist_items %}
+        <div class="row">
+            {% for item in wishlist_items %}
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <img src="{{ item.image.url }}" class="card-img-top" alt="{{ item.name }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ item.name }}</h5>
+                            <p class="card-text text-muted">{{ item.description|truncatewords:15 }}</p>
+                            <p class="card-text fw-bold">${{ item.price }}</p>
+                            <div class="d-flex justify-content-between">
+                                <a href="{% url 'products:detail' item.id %}" class="btn btn-primary">View Product</a>
+                                <form action="{% url 'users:remove_from_wishlist' item.id %}" method="POST">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger">Remove</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info text-center" role="alert">
+            Your wishlist is empty. Start adding your favorite products!
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

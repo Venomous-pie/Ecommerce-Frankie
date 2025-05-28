@@ -33,6 +33,9 @@
                         <a class="nav-link" href="{% url 'products:category' 'all' %}">Shop</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="{% url 'products:category' 'all' %}">Category</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="{% url 'core:about' %}">About</a>
                     </li>
                 </ul>
@@ -55,16 +58,30 @@
                             </span>
                         </a>
                         <div class="dropdown">
-                            <button class="btn btn-link text-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-user"></i>
+                            <button class="btn text-white dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="background: none; border: none;">
+                              <i class="fas fa-user-circle fs-4"></i>
+                              <span>{{ user.username }}</span>
                             </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="{% url 'users:profile' %}">Profile</a></li>
-                                <li><a class="dropdown-item" href="{% url 'users:orders' %}">Orders</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'users:logout' %}">Logout</a></li>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                              <li>
+                                <a class="dropdown-item d-flex align-items-center gap-2" href="{% url 'users:manage_account' %}">
+                                  <i class="fas fa-cog"></i> Manage My Account
+                                </a>
+                              </li>
+                              <li>
+                                <a class="dropdown-item d-flex align-items-center gap-2" href="{% url 'users:orders' %}">
+                                  <i class="fas fa-box"></i> Orders
+                                </a>
+                              </li>
+                              <li><hr class="dropdown-divider"></li>
+                              <li>
+                                <a class="dropdown-item d-flex align-items-center gap-2" href="{% url 'users:logout' %}">
+                                  <i class="fas fa-sign-out-alt"></i> Logout
+                                </a>
+                              </li>
                             </ul>
-                        </div>
+                          </div>
+                          
                     {% else %}
                         <a href="{% url 'users:login' %}" class="btn btn-outline-light me-2">Login</a>
                         <a href="{% url 'users:register' %}" class="btn btn-light">Register</a>

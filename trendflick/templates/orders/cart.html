@@ -23,7 +23,11 @@
                                             {{ item.product.name }}
                                         </a>
                                     </h5>
-                                    <button type="button" class="btn-close" onclick="removeFromCart({{ item.product.id }}, '{{ item.size }}')"></button>
+                                    <form action="{% url 'orders:remove_from_cart' item.product.id %}" method="POST" style="display:inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="size" value="{{ item.size }}">
+                                        <button type="submit" class="btn-close" aria-label="Remove"></button>
+                                    </form>
                                 </div>
                                 {% if item.size %}
                                     <p class="text-muted mb-2">Size: {{ item.size }}</p>
@@ -78,7 +82,7 @@
                             </div>
                         </form>
 
-                        <a href="{% url 'orders:checkout' %}" class="btn btn-dark w-100">Proceed to Checkout</a>
+                        <a href="#" class="btn btn-dark w-100">Proceed to Checkout</a>
                     </div>
                 </div>
 

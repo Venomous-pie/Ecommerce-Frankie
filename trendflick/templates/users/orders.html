@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}My Orders - TrendFlick{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">My Orders</h1>
+    {% if not orders %}
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Total</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                        <tr>
+                            <td>{{ order.id }}</td>
+                            <td>{{ order.date|date:"M d, Y" }}</td>
+                            <td>{{ order.status }}</td>
+                            <td>${{ order.total }}</td>
+                            <td>
+                                <a href="{% url 'users:order_detail' order.id %}" class="btn btn-sm btn-primary">View</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="text-muted">You have no orders yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

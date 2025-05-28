@@ -63,9 +63,25 @@
                                     <div class="product-overlay">
                                         <a href="{% url 'products:detail' product.id %}" class="btn btn-light">View Details</a>
                                     </div>
-                                    <button class="wishlist-btn" onclick="addToWishlist({{ product.id }})">
-                                        <i class="far fa-heart"></i>
-                                    </button>
+
+                                    {% if user.is_authenticated %}
+                                        <form method="POST" action="{% url 'users:add_to_wishlist' product.id %}" class="wishlist-form">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="product_id" value="{{ product.id }}">
+                                            <button type="submit" class="wishlist-btn">
+                                                {% if product.in_wishlist %}
+                                                    <i class="fas fa-heart text-danger"></i>  <!-- solid heart in red -->
+                                                {% else %}
+                                                    <i class="far fa-heart"></i>  <!-- outline heart -->
+                                                {% endif %}
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <a href="{% url 'login' %}?next={{ request.path }}" class="wishlist-btn text-dark">
+                                            <i class="far fa-heart"></i>
+                                        </a>
+                                    {% endif %}
+
                                     {% if product.discount_percentage %}
                                         <span class="badge bg-danger position-absolute top-0 start-0 m-2">
                                             -{{ product.discount_percentage }}%
@@ -83,9 +99,24 @@
                                                 </small>
                                             {% endif %}
                                         </div>
-                                        <button class="btn btn-outline-dark btn-sm" onclick="addToCart({{ product.id }})">
-                                            <i class="fas fa-shopping-cart"></i>
-                                        </button>
+
+                                        {% if user.is_authenticated %}
+                                            {% if product.in_cart %}
+                                                <button class="btn btn-success btn-sm" disabled>In Cart</button>
+                                            {% else %}
+                                                <form method="post" action="{% url 'products:add_to_cart' product.id %}">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="product_id" value="{{ product.id }}">
+                                                    <button type="submit" class="btn btn-outline-dark btn-sm">
+                                                        <i class="fas fa-shopping-cart"></i>
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                        {% else %}
+                                            <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-sign-in-alt"></i> Login to Buy
+                                            </a>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
@@ -126,6 +157,7 @@
                 </div>
             {% endif %}
         </div>
+
     </div>
 </div>
 {% endblock %} 

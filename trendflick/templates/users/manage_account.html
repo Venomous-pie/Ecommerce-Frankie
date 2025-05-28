@@ -1,8 +1,5 @@
 {% extends 'base.html' %}
 
-{% block title %}Register - TrendFlick{% endblock %}
-
-
 {% block content %}
   <style>
     body {
@@ -100,7 +97,7 @@
       <div class="verified">✔ Verified Account</div>
 
       <h3>Manage My Account</h3>
-      <a href="{% url 'view_profile' %}">My Profile</a>
+      <a href="{%% url 'users:view_profile'}">My Profile</a>
       <a href="#">Address Book</a>
       <a href="#">My Payment Options</a>
       <a href="#">Lazada Wallet</a>
@@ -110,7 +107,7 @@
       <a href="#">My Cancellations</a>
 
       <h3>My Reviews</h3>
-      <h3>My Wishlist &amp;<br/>Followed Stores</h3>
+      <h3>My Wishlist &<br/>Followed Stores</h3>
       <h3>Sell On Lazada</h3>
     </div>
 

@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -59,12 +59,18 @@ def register(request):
 
     return render(request, 'users/register.html')
 
+def manage_account(request):
+    if request.method == 'POST':
+        # Add your account management logic here
+        pass
+    return render(request, 'users/manage_account.html')
+
 @login_required
-def profile(request):
+def view_profile(request):
     if request.method == 'POST':
         # Add your profile update logic here
         pass
-    return render(request, 'users/profile.html')
+    return render(request, 'users/view_profile.html')
 
 @login_required
 def orders(request):
@@ -76,7 +82,8 @@ def wishlist(request):
     context = {
         'wishlist_items': wishlist.products.all()
     }
-    return render(request, 'users/wishlist.html', context)
+    return render(request, 'orders/wishlist.html', context)
+
 
 def password_reset(request):
     if request.method == 'POST':
@@ -84,69 +91,29 @@ def password_reset(request):
         pass
     return render(request, 'users/password_reset.html')
 
-@require_POST
 @login_required
-def add_to_wishlist(request):
-    try:
-        data = json.loads(request.body)
-        product_id = data.get('product_id')
-        
-        if not product_id:
-            return JsonResponse({'success': False, 'message': 'Product ID is required'})
-        
-        product = Product.objects.get(id=product_id)
-        wishlist = Wishlist.objects.get_or_create(user=request.user)[0]
-        
-        if product not in wishlist.products.all():
-            wishlist.products.add(product)
-            return JsonResponse({
-                'success': True,
-                'message': 'Item added to wishlist',
-                'wishlist': get_wishlist_data(wishlist)
-            })
-        else:
-            return JsonResponse({
-                'success': False,
-                'message': 'Item already in wishlist'
-            })
-    except Product.DoesNotExist:
-        return JsonResponse({'success': False, 'message': 'Product not found'})
-    except Exception as e:
-        return JsonResponse({'success': False, 'message': str(e)})
+def add_to_wishlist(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    wishlist, _ = Wishlist.objects.get_or_create(user=request.user)
 
-@require_POST
+    if wishlist.products.filter(pk=product.pk).exists():
+        messages.info(request, "Item already in wishlist.")
+    else:
+        wishlist.products.add(product)
+        messages.success(request, "Item added to wishlist.")
+
+    return redirect(request.META.get('HTTP_REFERER', '/'))
+
+
 @login_required
-def remove_from_wishlist(request):
-    try:
-        data = json.loads(request.body)
-        product_id = data.get('product_id')
-        
-        if not product_id:
-            return JsonResponse({'success': False, 'message': 'Product ID is required'})
-        
-        wishlist = Wishlist.objects.get(user=request.user)
-        product = Product.objects.get(id=product_id)
+def remove_from_wishlist(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    wishlist = get_object_or_404(Wishlist, user=request.user)
+
+    if wishlist.products.filter(pk=product.pk).exists():
         wishlist.products.remove(product)
-        
-        return JsonResponse({
-            'success': True,
-            'message': 'Item removed from wishlist',
-            'wishlist': get_wishlist_data(wishlist)
-        })
-    except Exception as e:
-        return JsonResponse({'success': False, 'message': str(e)})
+        messages.success(request, "Item removed from wishlist.")
+    else:
+        messages.info(request, "Item not found in wishlist.")
 
-def get_wishlist_data(wishlist):
-    return {
-        'items': [
-            {
-                'id': product.id,
-                'name': product.name,
-                'price': str(product.price),
-                'image': product.image.url if product.image else None,
-                'category': product.category
-            }
-            for product in wishlist.products.all()
-        ],
-        'total_items': wishlist.products.count()
-    }
+    return redirect(request.META.get('HTTP_REFERER', '/'))
