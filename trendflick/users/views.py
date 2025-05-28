@@ -5,10 +5,11 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 import json
-from .models import User, Wishlist
+from .models import *
 from products.models import Product
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
+
 
 
 def login_view(request):
@@ -66,13 +67,6 @@ def manage_account(request):
     return render(request, 'users/manage_account.html')
 
 @login_required
-def view_profile(request):
-    if request.method == 'POST':
-        # Add your profile update logic here
-        pass
-    return render(request, 'users/view_profile.html')
-
-@login_required
 def orders(request):
     return render(request, 'users/orders.html')
 
@@ -117,3 +111,87 @@ def remove_from_wishlist(request, pk):
         messages.info(request, "Item not found in wishlist.")
 
     return redirect(request.META.get('HTTP_REFERER', '/'))
+
+def addresses_view(request):
+    """View for managing user addresses."""
+    addresses = Address.objects.filter(user=request.user)
+    return render(request, 'users/addresses.html', {
+        'addresses': addresses,
+        'user': request.user
+    })
+
+@login_required(login_url='login')
+def add_address(request):
+    """Add a new address."""
+    if request.method == 'POST':
+        # If setting as default, unset other default addresses
+        if request.POST.get('is_default'):
+            Address.objects.filter(user=request.user, is_default=True).update(is_default=False)
+        
+        Address.objects.create(
+            user=request.user,
+            full_name=request.POST.get('full_name'),
+            street_address=request.POST.get('street_address'),
+            city=request.POST.get('city'),
+            state=request.POST.get('state'),
+            postal_code=request.POST.get('postal_code'),
+            country=request.POST.get('country'),
+            phone_number=request.POST.get('phone_number'),
+            is_default=bool(request.POST.get('is_default'))
+        )
+        messages.success(request, 'Address added successfully!')
+        return redirect('addresses')
+    
+    return render(request, 'users/add_address.html')
+
+
+def edit_address(request, address_id):
+    """Edit an existing address."""
+    address = get_object_or_404(Address, id=address_id, user=request.user)
+    
+    if request.method == 'POST':
+        # If setting as default, unset other default addresses
+        if request.POST.get('is_default'):
+            Address.objects.filter(user=request.user, is_default=True).update(is_default=False)
+        
+        address.full_name = request.POST.get('full_name')
+        address.street_address = request.POST.get('street_address')
+        address.city = request.POST.get('city')
+        address.state = request.POST.get('state')
+        address.postal_code = request.POST.get('postal_code')
+        address.country = request.POST.get('country')
+        address.phone_number = request.POST.get('phone_number')
+        address.is_default = bool(request.POST.get('is_default'))
+        address.save()
+        
+        messages.success(request, 'Address updated successfully!')
+        return redirect('addresses')
+    
+    return render(request, 'users/edit_address.html', {'address': address})
+
+
+def delete_address(request, address_id):
+    """Delete an address."""
+    address = get_object_or_404(Address, id=address_id, user=request.user)
+    address.delete()
+    messages.success(request, 'Address deleted successfully!')
+    return redirect('addresses')
+
+def set_default_address(request):
+    """Get the default address for the user."""
+    try:
+        address = Address.objects.get(user=request.user, is_default=True)
+        return JsonResponse({
+            'status': 'success',
+            'address': {
+                'full_name': address.full_name,
+                'street_address': address.street_address,
+                'city': address.city,
+                'state': address.state,
+                'postal_code': address.postal_code,
+                'country': address.country,
+                'phone_number': address.phone_number
+            }
+        })
+    except Address.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'No default address found.'})

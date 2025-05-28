@@ -1,178 +1,325 @@
 {% extends 'base.html' %}
 
 {% block content %}
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background-color: #f3f3f3;
+<style>
+    .profile-sidebar {
+        background:rgb(226, 224, 233);
+        border-radius: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        padding: 32px 0 32px 0;
+        min-height: 600px;
     }
-    header {
-      background-color: white;
-      padding: 10px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid #ddd;
+    .profile-sidebar .nav-link {
+        color: #222;
+        font-weight: 500;
+        padding: 12px 32px;
+        border-radius: 0;
+        transition: background 0.2s;
     }
-    header .logo {
-      font-size: 24px;
-      font-weight: bold;
-      color: #f57224;
+    .profile-sidebar .nav-link.active, .profile-sidebar .nav-link:hover {
+        background: #23247a52;
+        color: #ff5e3a;
     }
-    header .search-bar input {
-      padding: 8px;
-      width: 300px;
+    .profile-section {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        padding: 40px 32px;
+        min-height: 600px;
     }
-    .container {
-      display: flex;
-      padding: 20px;
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: #f5f5f5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        color: #bbb;
+        margin: 0 auto 16px auto;
+        overflow: hidden;
     }
-    .sidebar {
-      width: 250px;
-      background-color: white;
-      padding: 20px;
-      border-right: 1px solid #ddd;
+    .profile-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
     }
-    .sidebar h3 {
-      margin-top: 20px;
-      font-size: 16px;
-      color: #333;
+    .profile-upload-btn {
+        display: block;
+        margin: 0 auto 8px auto;
     }
-    .sidebar a {
-      display: block;
-      margin: 8px 0;
-      text-decoration: none;
-      color: #0288d1;
+    .profile-form-label {
+        font-weight: 500;
+        margin-bottom: 4px;
     }
-    .content {
-      flex: 1;
-      background-color: white;
-      margin-left: 20px;
-      padding: 20px;
+    .profile-form-input {
+        border-radius: 8px;
+        padding: 10px 16px;
+        margin-bottom: 16px;
     }
-    .section {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 30px;
+    .profile-form-radio {
+        margin-right: 8px;
     }
-    .box {
-      width: 30%;
-      border: 1px solid #ddd;
-      padding: 15px;
-      background-color: #fafafa;
+    .profile-info-item {
+        margin-bottom: 20px;
     }
-    .box h4 {
-      margin-bottom: 10px;
-    }
-    .orders table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    .orders th, .orders td {
-      padding: 10px;
-      border-bottom: 1px solid #ddd;
-      text-align: left;
-    }
-    .manage-link {
-      color: #0288d1;
-      text-decoration: none;
-      font-weight: bold;
-    }
-    .verified {
-      display: inline-block;
-      margin-top: 10px;
-      padding: 3px 8px;
-      background-color: #4caf50;
-      color: white;
-      font-size: 12px;
-      border-radius: 4px;
-    }
-  </style>
 
+    .profile-info-label {
+        font-weight: 500;
+        color: #666;
+        margin-bottom: 4px;
+    }
+    .profile-info-value {
+        font-size: 1.1rem;
+        color: #333;
+    }
+    @media (max-width: 991px) {
+        .profile-sidebar, .profile-section {
+            min-height: unset;
+            padding: 24px 8px;
+        }
+    }
 
-  <div class="container">
-    <div class="sidebar">
-      <div>Hello, {{ user.username }}</div>
-      <div class="verified">✔ Verified Account</div>
+</style>
 
-      <h3>Manage My Account</h3>
-      <a href="{%% url 'users:view_profile'}">My Profile</a>
-      <a href="#">Address Book</a>
-      <a href="#">My Payment Options</a>
-      <a href="#">Lazada Wallet</a>
+    <!-- user content -->
+<div class="container" style="background: #fafafa; min-height: 80vh; padding: 30px 0;">
+    <p class="text-center text-muted my-2" style="font-size: 1.50rem; font-weight: bold;">Manage your account and preferences</p>
+    <div class="row justify-content-center">
+        <div class="col-lg-3 mb-4 my-3">
+            <div class="profile-sidebar">
+                <div class="d-flex align-items-center mb-4 px-4">
+                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width:48px; height:48px; font-size:1.5rem;">
+                        <i class="fa fa-user"></i>
+                    </div>
+                    <div class="ms-3">
+                        <div style="font-weight:600; font-size: 2rem; color:rgb(0, 0, 0);">{{ user.username }}</div>
+                        <div style="font-size:0.95rem; color:rgba(0, 0, 0, 0.47); cursor:pointer;" onclick="toggleEditMode()">✎ Edit Profile</div>
+                    </div>
+                </div>
+                <hr>
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="#">Profile</a>
+                    <a class="nav-link" href="#">Banks & Cards</a>
+                    <a class="nav-link" href="{% url 'users:addresses' %}">Addresses</a>
+                    <a class="nav-link" href="#">Change Password</a>
+                    <a class="nav-link" href="#">Privacy Settings</a>
+                    <a class="nav-link" href="#">Notification Settings</a>
+                </nav>
+                <hr>
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="#"><i class="fa fa-shopping-bag me-2"></i>My Purchase</a>
+                    <a class="nav-link" href="#"><i class="fa fa-bell me-2"></i>Notifications</a>
+                    <a class="nav-link" href="#"><i class="fa fa-ticket me-2"></i>My Vouchers</a>
+                    <a class="nav-link" href="#"><i class="fa fa-coins me-2"></i>My Coins</a>
+                </nav>
+            </div>
+        </div>
 
-      <h3>My Orders</h3>
-      <a href="#">My Returns</a>
-      <a href="#">My Cancellations</a>
+        <!-- Profile View/Edit Section -->
+        <div class="col-lg-9">
+            <div class="profile-section">
+                <h4 style="font-weight:600;">My Profile</h4>
+                <div style="color:#888; font-size:1rem; margin-bottom:32px;">✎ edit bio</div>
 
-      <h3>My Reviews</h3>
-      <h3>My Wishlist &<br/>Followed Stores</h3>
-      <h3>Sell On Lazada</h3>
+                <!-- View Mode -->
+                <div id="viewMode" class="row">
+                    <div class="col-md-8">
+                        <div class="profile-info-item">
+                            <div class="profile-info-label">Username</div>
+                            <div class="profile-info-value">{{ user.username }}</div>
+                        </div>
+                        <div class="profile-info-item">
+                            <div class="profile-info-label">Name</div>
+                            <div class="profile-info-value">{{ user.get_full_name }}</div>
+                        </div>
+                        <div class="profile-info-item">
+                            <div class="profile-info-label">Email</div>
+                            <div class="profile-info-value">{{ user.email }}</div>
+                        </div>
+                        <div class="profile-info-item">
+                            <div class="profile-info-label">Phone Number</div>
+                            <div class="profile-info-value">{{ user.profile.phone|default:"Not set" }}</div>
+                        </div>
+                        <div class="profile-info-item">
+                            <div class="profile-info-label">Gender</div>
+                            <div class="profile-info-value">{{ user.profile.gender|title|default:"Not set" }}</div>
+                        </div>
+                        <div class="profile-info-item">
+                            <div class="profile-info-label">Date of Birth</div>
+                            <div class="profile-info-value">{{ user.profile.date_of_birth|date:"F d, Y"|default:"Not set" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 d-flex flex-column align-items-center justify-content-start">
+                        <div class="profile-avatar mb-2" style="width: 200px; height: 200px;">
+                            {% if user.profile.avatar %}
+                                <img src="{{ user.profile.avatar.url }}" alt="Profile Avatar">
+                            {% else %}
+                                <i class="fa fa-user"></i>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Edit Mode -->
+                <div id="editMode" style="display:none;">
+                    <h4 style="font-weight:600;">Edit Profile</h4>
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label class="profile-form-label">Username</label>
+                                    <input type="text" class="form-control profile-form-input" value="{{ user.username }}" readonly>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="profile-form-label">Name</label>
+                                    <input type="text" class="form-control profile-form-input" name="name" value="{{ user.get_full_name }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="profile-form-label">Email</label>
+                                    <input type="email" class="form-control profile-form-input" value="{{ user.email }}" readonly>
+                                    <a href="#" style="font-size:0.95rem; color:#007bff;">Change</a>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="profile-form-label">Phone Number</label>
+                                    <input type="text" class="form-control profile-form-input" name="phone" value="{{ user.profile.phone|default:'' }}">
+                                    <a href="#" style="font-size:0.95rem; color:#007bff;">Change</a>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="profile-form-label">Gender</label><br>
+                                    <input type="radio" class="profile-form-radio" name="gender" value="male" {% if user.profile.gender == 'male' %}checked{% endif %}> Male
+                                    <input type="radio" class="profile-form-radio" name="gender" value="female" {% if user.profile.gender == 'female' %}checked{% endif %}> Female
+                                    <input type="radio" class="profile-form-radio" name="gender" value="other" {% if user.profile.gender == 'other' %}checked{% endif %}> Other
+                                </div>
+                                <div class="mb-3 row">
+                                    <label class="profile-form-label col-12">Date of birth</label>
+                                    <div class="col-4">
+
+    <select class="form-control profile-form-input {% if dob_errors.dob_day %}is-invalid{% endif %}" name="dob_day">
+        <option value="">Date</option>
+        {% for d in days %}
+            <option value="{{ d }}" {% if request.POST.dob_day == d|stringformat:"s" %}selected{% endif %}>{{ d }}</option>
+        {% endfor %}
+    </select>
+    {% if dob_errors.dob_day %}
+        <div class="invalid-feedback">{{ dob_errors.dob_day }}</div>
+    {% endif %}
+</div>
+<div class="col-4">
+    <select class="form-control profile-form-input {% if dob_errors.dob_month %}is-invalid{% endif %}" name="dob_month">
+        <option value="">Month</option>
+        {% for m in months %}
+            <option value="{{ m }}" {% if request.POST.dob_month == m|stringformat:"s" %}selected{% endif %}>{{ m }}</option>
+        {% endfor %}
+    </select>
+    {% if dob_errors.dob_month %}
+        <div class="invalid-feedback">{{ dob_errors.dob_month }}</div>
+    {% endif %}
+</div>
+<div class="col-4">
+    <select class="form-control profile-form-input {% if dob_errors.dob_year %}is-invalid{% endif %}" name="dob_year">
+        <option value="">Year</option>
+        {% for y in years %}
+            <option value="{{ y }}" {% if request.POST.dob_year == y|stringformat:"s" %}selected{% endif %}>{{ y }}</option>
+        {% endfor %}
+    </select>
+    {% if dob_errors.dob_year %}
+        <div class="invalid-feedback">{{ dob_errors.dob_year }}</div>
+    {% endif %}
+</div>
+
+                                </div>
+                                <button type="submit" class="btn btn-primary px-5 mt-2">Save</button>
+                            </div>
+                            <div class="col-md-4 d-flex flex-column align-items-center justify-content-start">
+                                <div class="profile-avatar mb-2" style="width: 200px; height: 200px;">
+                                    {% if user.profile.avatar %}
+                                        <img src="{{ user.profile.avatar.url }}" alt="Profile Avatar" style="width: 200px; height: 200px;">
+                                    {% else %}
+                                        <i class="fa fa-user"></i>
+                                    {% endif %}
+                                </div>
+                                <input type="file" name="avatar" class="form-control profile-upload-btn" style="max-width:200px;" accept="image/jpeg, image/png">
+                                <div style="font-size:0.95rem; color:#888;">File size: maximum 1 MB<br>File extension: .JPEG, .PNG</div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Success Message -->
+                {% if messages %}
+                <div class="alert alert-success mt-4" role="alert">
+                    {% for message in messages %}
+                        {{ message }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
     </div>
+</div>
 
-    <div class="content">
-      <h2>Manage My Account</h2>
-      <div class="section">
-        <div class="box">
-          <h4>Personal Profile <a href="#">EDIT</a></h4>
-          <p>Daryl C Iabial</p>
-          <p>da********@gmail.com</p>
-          <label><input type="checkbox" /> Receive marketing SMS</label><br />
-          <label><input type="checkbox" checked /> Receive marketing emails</label>
-        </div>
-        <div class="box">
-          <h4>Default Shipping Address <a href="#">EDIT</a></h4>
-          <p>Daryl C Iabial</p>
-          <p>P-6 Adlay<br />Surigao Del Sur - Carrascal - Adlay</p>
-          <p>(+63) 09461032379</p>
-        </div>
-        <div class="box">
-          <h4>Default Billing Address</h4>
-          <p>Daryl C Iabial</p>
-          <p>P-6 Adlay<br />Surigao Del Sur - Carrascal - Adlay</p>
-          <p>(+63) 09461032379</p>
-        </div>
-      </div>
+<script>
+function toggleEditMode() {
+    const viewMode = document.getElementById('viewMode');
+    const editMode = document.getElementById('editMode');
+    
+    if (viewMode.style.display === 'none') {
+        viewMode.style.display = 'flex';
+        editMode.style.display = 'none';
+    } else {
+        viewMode.style.display = 'none';
+        editMode.style.display = 'block';
+    }
+}
 
-      <div class="orders">
-        <h3>Recent Orders</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Order #</th>
-              <th>Placed On</th>
-              <th>Items</th>
-              <th>Total</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>894862690740447</td>
-              <td>13/09/2024</td>
-              <td><img src="https://via.placeholder.com/40x40?text=Item1" alt="item" /></td>
-              <td>₱239.83</td>
-              <td><a class="manage-link" href="#">MANAGE</a></td>
-            </tr>
-            <tr>
-              <td>724325057740447</td>
-              <td>26/10/2023</td>
-              <td><img src="https://via.placeholder.com/40x40?text=Item2" alt="item" /></td>
-              <td>₱219.00</td>
-              <td><a class="manage-link" href="#">MANAGE</a></td>
-            </tr>
-            <tr>
-              <td>724310680740447</td>
-              <td>26/10/2023</td>
-              <td><img src="https://via.placeholder.com/40x40?text=Item3" alt="item" /></td>
-              <td>₱472.00</td>
-              <td><a class="manage-link" href="#">MANAGE</a></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
+document.addEventListener("DOMContentLoaded", function () {
+    const alertBox = document.querySelector('.alert-success');
+    if (alertBox) {
+        setTimeout(() => {
+            alertBox.style.transition = 'opacity 1s ease-out';
+            alertBox.style.opacity = '0';
+            setTimeout(() => {
+                alertBox.remove();
+            }, 500); // wait for transition to finish before removing
+        }, 1000); // show for 3 seconds
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.querySelector('#editMode form');
+
+    form.addEventListener('submit', function (event) {
+        const day = form.querySelector('select[name="dob_day"]');
+        const month = form.querySelector('select[name="dob_month"]');
+        const year = form.querySelector('select[name="dob_year"]');
+
+        let isValid = true;
+
+        [day, month, year].forEach(select => {
+            const feedback = select.nextElementSibling;
+            if (select.value === "" || select.value === "Date" || select.value === "Month" || select.value === "Year") {
+                select.classList.add('is-invalid');
+                if (!feedback || !feedback.classList.contains('invalid-feedback')) {
+                    const error = document.createElement('div');
+                    error.classList.add('invalid-feedback');
+                    error.innerText = "Please fill in this field";
+                    select.parentElement.appendChild(error);
+                }
+                isValid = false;
+            } else {
+                select.classList.remove('is-invalid');
+                const feedback = select.parentElement.querySelector('.invalid-feedback');
+                if (feedback) feedback.remove();
+            }
+        });
+
+        if (!isValid) {
+            event.preventDefault(); // block form submission
+        }
+    });
+});
+</script>
 {% endblock %}
-

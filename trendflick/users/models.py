@@ -34,3 +34,41 @@ class Wishlist(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+class Address(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='addresses')
+    full_name = models.CharField(max_length=100)
+    street_address = models.CharField(max_length=255)
+    city = models.CharField(max_length=100)
+    state = models.CharField(max_length=100)
+    postal_code = models.CharField(max_length=20)
+    country = models.CharField(max_length=100)
+    phone_number = models.CharField(max_length=20)
+    is_default = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.full_name}'s address in {self.city}"
+
+    class Meta:
+        verbose_name_plural = "Addresses"
+        ordering = ['-is_default', '-created_at']
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    phone = models.CharField(max_length=20, blank=True, null=True)
+    gender = models.CharField(max_length=10, choices=[('male', 'Male'), ('female', 'Female'), ('other', 'Other')], blank=True, null=True)
+    date_of_birth = models.DateField(blank=True, null=True)
+    avatar = models.ImageField(upload_to='profile_avatars/', blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user.username}'s profile"
+
+    def save(self, *args, **kwargs):
+        if not self.pk:  # If this is a new profile
+            super().save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
