@@ -137,7 +137,6 @@ STATIC_URL = 'static/'
 
 # Add STATICFILES_DIRS
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'trendflick/static'),
     os.path.join(BASE_DIR, 'static'),
 ]
 
