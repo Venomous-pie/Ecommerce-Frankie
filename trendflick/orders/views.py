@@ -7,7 +7,7 @@ from .models import *
 from django.utils import timezone
 
 
-@login_required
+@login_required(login_url='users:login')
 def cart(request):
     cart, _ = Cart.objects.get_or_create(user=request.user)
     cart_items = cart.items.all()
@@ -66,7 +66,7 @@ def cart(request):
     return render(request, 'orders/cart.html', context)
 
 @require_POST
-@login_required
+@login_required(login_url='users:login')
 def remove_from_cart(request, product_id):
     try:
         product_id = int(product_id)
@@ -85,7 +85,7 @@ def remove_from_cart(request, product_id):
 
 
 @require_POST
-@login_required
+@login_required(login_url='users:login')
 def update_cart(request):
     product_id = request.POST.get('product_id')
     size = request.POST.get('size')
@@ -104,7 +104,7 @@ def update_cart(request):
 
 from decimal import Decimal
 
-@login_required
+@login_required(login_url='users:login')
 def checkout_view(request):
     cart = Cart.objects.filter(user=request.user).first()
     if not cart or cart.items.count() == 0:
@@ -122,7 +122,7 @@ def checkout_view(request):
     }
     return render(request, 'orders/checkout.html', context)
 
-@login_required
+@login_required(login_url='users:login')
 def place_order_view(request):
     if request.method == 'POST':
         cart = Cart.objects.filter(user=request.user).first()
@@ -166,12 +166,12 @@ def place_order_view(request):
         return redirect('orders:success', order_id=order.id)
     return redirect('orders:checkout')
 
-@login_required
+@login_required(login_url='users:login')
 def order_success_view(request, order_id):
     order = Order.objects.get(id=order_id, user=request.user)
     return render(request, 'orders/order-success.html', {'order': order})
 
-@login_required
+@login_required(login_url='users:login')
 def order_detail(request, order_id):
     order = get_object_or_404(Order, id=order_id, user=request.user)
     return render(request, 'orders/order_detail.html', {'order': order})

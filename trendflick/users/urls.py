@@ -22,6 +22,6 @@ urlpatterns = [
     path('addresses/set-default/<int:address_id>/', views.set_default_address, name='set_default_address'),
 
     path('password-reset-request/', views.password_reset_request, name='password_reset_request'),
-    # path('password-reset/verify/', views.password_reset_verify, name='password_reset_verify'),
-    # path('password-reset/complete/', views.password_reset_complete, name='password_reset_complete'),
+    path('password-reset-verify/', views.password_reset_verify, name='password_reset_verify'),
+    path('password-reset/complete/', views.password_reset_complete, name='password_reset_complete'),
 ] 

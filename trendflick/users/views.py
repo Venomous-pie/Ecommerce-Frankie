@@ -6,13 +6,14 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.core.mail import send_mail
 from django.conf import settings
-from django.utils import timezone
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
-
 from .models import PasswordResetCode, Wishlist, Address
 from products.models import Product
 from orders.models import Order
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+
 
 def login_view(request):
     if request.user.is_authenticated:
@@ -89,12 +90,12 @@ def change_password(request):
         return redirect('users:login')
     return render(request, 'users/change_password.html') 
 
-@login_required
+@login_required(login_url='users:login')
 def orders(request):
     orders = Order.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'orders/orders.html', {'orders': orders})
 
-@login_required
+@login_required(login_url='users:login')
 def wishlist(request):
     wishlist = Wishlist.objects.get_or_create(user=request.user)[0]
     context = {
@@ -107,7 +108,7 @@ def password_reset(request):
         pass
     return render(request, 'users/password_reset.html')
 
-@login_required
+@login_required(login_url='users:login')
 @require_POST
 def toggle_wishlist(request, pk):
     product = get_object_or_404(Product, pk=pk)
@@ -132,7 +133,7 @@ def addresses_view(request):
         'user': request.user
     })
 
-@login_required(login_url='login')
+@login_required(login_url='users:login')
 def add_address(request):
     if request.method == 'POST':
         if request.POST.get('is_default'):
@@ -213,56 +214,92 @@ def password_reset_request(request):
                 return redirect('users:password_reset')
 
             reset_code = PasswordResetCode.objects.create(user=user)
-            reset_url = request.build_absolute_uri(f"/users/password-reset/verify/?code={reset_code.code}")
 
-            send_mail(
-                'Password Reset Request',
-                f'Use the following link to reset your password: {reset_url}',
-                settings.DEFAULT_FROM_EMAIL,
-                [email],
-                fail_silently=False,
+            subject = 'Your Password Reset Code'
+            from_email = settings.DEFAULT_FROM_EMAIL
+            recipient_list = [email]
+
+            # Render the HTML email template with context
+            html_content = render_to_string('users/password_reset_email.html', {
+                'username': user.username,
+                'reset_code': reset_code.code,
+            })
+
+            # Create email with both plain text and HTML alternatives
+            text_content = (
+                f"Hello {user.username},\n\n"
+                f"You requested a password reset. Use the following code to reset your password:\n\n"
+                f"{reset_code.code}\n\n"
+                "If you did not request this, please ignore this email.\n\n"
+                "Thanks,\n"
+                "Your Website Team"
             )
-            messages.success(request, "A reset link has been sent to your email.")
+            email_message = EmailMultiAlternatives(subject, text_content, from_email, recipient_list)
+            email_message.attach_alternative(html_content, "text/html")
+            email_message.send(fail_silently=False)
+
+            return redirect('users:password_reset_verify')
+
         except User.DoesNotExist:
             messages.error(request, "No account found with that email.")
     return render(request, 'users/password_reset.html')
 
 def password_reset_verify(request):
-    code = request.GET.get('code')
+    if request.method == 'POST':
+        code = request.POST.get('code', '').strip()
+
+        if not code or not code.isdigit() or len(code) != 6:
+            messages.error(request, "Invalid reset code format.")
+            return render(request, 'users/password_reset_verify.html')
+
+        try:
+            reset_entry = PasswordResetCode.objects.get(code=code, is_used=False)
+            if not reset_entry.is_valid():
+                messages.error(request, "Reset code has expired.")
+                return redirect('users:password_reset')
+
+            # ✅ Store code in session
+            request.session['reset_code'] = code
+
+            return redirect('users:password_reset_complete')
+
+        except PasswordResetCode.DoesNotExist:
+            messages.error(request, "Invalid reset code.")
+            return render(request, 'users/password_reset_verify.html')
+
+    return render(request, 'users/password_reset_verify.html')
+
+def password_reset_complete(request):
+    code = request.session.get('reset_code', '').strip()
+
     try:
         reset_entry = PasswordResetCode.objects.get(code=code, is_used=False)
         if not reset_entry.is_valid():
-            messages.error(request, "This reset link has expired.")
+            messages.error(request, "Reset code has expired.")
             return redirect('users:password_reset')
-        return render(request, 'users/password_reset_verify.html', {'code': code})
     except PasswordResetCode.DoesNotExist:
-        messages.error(request, "Invalid or expired reset link.")
+        messages.error(request, "Unauthorized or invalid reset code.")
         return redirect('users:password_reset')
 
-def password_reset_complete(request):
     if request.method == 'POST':
-        code = request.POST.get('code')
         password = request.POST.get('password')
         confirm_password = request.POST.get('confirm_password')
 
         if password != confirm_password:
             messages.error(request, "Passwords do not match.")
-            return redirect(f'/users/password-reset/verify/?code={code}')
+            return render(request, 'users/password_reset_complete.html')
 
-        try:
-            reset_entry = PasswordResetCode.objects.get(code=code, is_used=False)
-            if not reset_entry.is_valid():
-                messages.error(request, "Reset link has expired.")
-                return redirect('users:password_reset')
+        user = reset_entry.user
+        user.set_password(password)
+        user.save()
 
-            user = reset_entry.user
-            user.set_password(password)
-            user.save()
-            reset_entry.is_used = True
-            reset_entry.save()
+        reset_entry.is_used = True
+        reset_entry.save()
 
-            messages.success(request, "Password has been reset. You may now log in.")
-            return redirect('users:login')
-        except PasswordResetCode.DoesNotExist:
-            messages.error(request, "Invalid reset code.")
-    return redirect('users:password_reset')
+        # Cleanup session
+        del request.session['reset_code']
+
+        messages.success(request, "Password has been reset. You may now log in.")
+        return redirect('users:login')
+
+    return render(request, 'users/password_reset_complete.html')

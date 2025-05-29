@@ -10,7 +10,7 @@ from orders.models import CartItem, Cart
 from users.models import Wishlist
 
 
-@login_required
+@login_required(login_url='users:login')
 def add_to_cart(request, product_id):
     if request.method == 'POST':
         quantity = request.POST.get('quantity')
@@ -47,7 +47,7 @@ def add_to_cart(request, product_id):
 
     return render(request, 'orders/cart.html')
 
-@login_required
+@login_required(login_url='users:login')
 def remove_from_cart(request, product_id):
     if not product_id:
         messages.error(request, "Invalid product.")
@@ -184,78 +184,45 @@ def related_products(request, product_id):
         ]
     })
 
-def search(request):
-    query = request.GET.get('q', '').strip()
-    current_sort = request.GET.get('sort', 'newest')
-
-    products_list = Product.objects.all()
-
-    if query:
-        products_list = products_list.filter(
-            Q(name__icontains=query) |
-            Q(description__icontains=query) |
-            Q(category__name__icontains=query)
-        )
-
-    # Optional price filtering
+def search_products(request):
+    query = request.GET.get('q', '')
     min_price = request.GET.get('min_price')
     max_price = request.GET.get('max_price')
+    sort = request.GET.get('sort', 'relevance')
+
+    products = Product.objects.all()
+
+    # Search query
+    if query:
+        products = products.filter(
+            Q(name__icontains=query) | Q(description__icontains=query)
+        )
+
+    # Price filtering
     if min_price:
-        products_list = products_list.filter(price__gte=min_price)
+        products = products.filter(price__gte=min_price)
     if max_price:
-        products_list = products_list.filter(price__lte=max_price)
+        products = products.filter(price__lte=max_price)
 
     # Sorting
-    if current_sort == 'price_low':
-        products_list = products_list.order_by('price')
-    elif current_sort == 'price_high':
-        products_list = products_list.order_by('-price')
-    elif current_sort == 'name':
-        products_list = products_list.order_by('name')
-    else:
-        products_list = products_list.order_by('-created_at')
-
-    cart_product_ids = set()
-    wishlist_product_ids = set()
-
-    if request.user.is_authenticated:
-        cart_product_ids = set(
-            CartItem.objects.filter(cart__user=request.user).values_list('product_id', flat=True)
-        )
-        try:
-            wishlist = Wishlist.objects.get(user=request.user)
-            wishlist_product_ids = set(wishlist.products.values_list('id', flat=True))
-        except Wishlist.DoesNotExist:
-            pass
+    if sort == 'newest':
+        products = products.order_by('-created_at')
+    elif sort == 'price_low':
+        products = products.order_by('price')
+    elif sort == 'price_high':
+        products = products.order_by('-price')
+    elif sort == 'name':
+        products = products.order_by('name')
+    # else: default "relevance" (leave queryset as-is)
 
     # Pagination
-    paginator = Paginator(products_list, 12)
-    page = request.GET.get('page')
-    try:
-        products = paginator.page(page)
-    except PageNotAnInteger:
-        products = paginator.page(1)
-    except EmptyPage:
-        products = paginator.page(paginator.num_pages)
-
-    for product in products:
-        product.in_cart = product.id in cart_product_ids
-        product.in_wishlist = product.id in wishlist_product_ids
-
-    cart_product_ids = set()
-    if request.user.is_authenticated:
-        try:
-            cart = Cart.objects.get(user=request.user)
-            cart_product_ids = set(
-                CartItem.objects.filter(cart=cart).values_list('product_id', flat=True)
-            )
-        except Cart.DoesNotExist:
-            pass
-
+    paginator = Paginator(products, 9)  # 9 products per page
+    page_number = request.GET.get('page')
+    products_page = paginator.get_page(page_number)
 
     context = {
-        'products': products,
+        'products': products_page,
         'query': query,
-        'current_sort': current_sort
+        'current_sort': sort,
     }
     return render(request, 'products/search_results.html', context)

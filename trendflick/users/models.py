@@ -5,6 +5,7 @@ from django.dispatch import receiver
 from products.models import Product
 from django.utils import timezone
 import uuid
+import random
 
 
 class Profile(models.Model):
@@ -76,12 +77,22 @@ class Profile(models.Model):
         else:
             super().save(*args, **kwargs)
 
+def generate_unique_numeric_code():
+    while True:
+        code = ''.join(str(random.randint(0, 5)) for _ in range(6))
+        if not PasswordResetCode.objects.filter(code=code).exists():
+            return code
 
 class PasswordResetCode(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    code = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    code = models.CharField(max_length=6, unique=True, editable=False)
     created_at = models.DateTimeField(default=timezone.now)
     is_used = models.BooleanField(default=False)
 
+    def save(self, *args, **kwargs):
+        if not self.code:
+            self.code = generate_unique_numeric_code()
+        super().save(*args, **kwargs)
+
     def is_valid(self):
-        return (timezone.now() - self.created_at).seconds < 900  # 15 minutes
+        return (timezone.now() - self.created_at).total_seconds() < 900  # 15 minutes
