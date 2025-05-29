@@ -82,19 +82,10 @@
                 <hr>
                 <nav class="nav flex-column">
                     <a class="nav-link" href="{% url 'users:manage_account' %}">Profile</a>
-                    <a class="nav-link" href="#">Banks & Cards</a>
-                    <a class="nav-link active" href="#">Addresses</a>
-                    <a class="nav-link" href="#">Change Password</a>
-                    <a class="nav-link" href="#">Privacy Settings</a>
-                    <a class="nav-link" href="#">Notification Settings</a>
+                    <a class="nav-link active" href="{% url 'users:addresses'%}">Addresses</a>
+                    <a class="nav-link" href="{% url 'users:change_password'%}">Change Password</a>
                 </nav>
                 <hr>
-                <nav class="nav flex-column">
-                    <a class="nav-link" href="{% url 'users:orders' %}"><i class="fa fa-shopping-bag me-2"></i>My Purchase</a>
-                    <a class="nav-link" href="#"><i class="fa fa-bell me-2"></i>Notifications</a>
-                    <a class="nav-link" href="#"><i class="fa fa-ticket me-2"></i>My Vouchers</a>
-                    <a class="nav-link" href="#"><i class="fa fa-coins me-2"></i>My Coins</a>
-                </nav>
             </div>
         </div>
 

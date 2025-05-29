@@ -20,11 +20,23 @@ def login_view(request):
         return render(request, 'home.html')
 
     if request.method == 'POST':
-        username = request.POST.get('username')
+        username_or_email = request.POST.get('username')
         password = request.POST.get('password')
-        user = authenticate(username=username, password=password)
 
-        if user:
+        # Check if it's an email
+        if '@' in username_or_email:
+            try:
+                user_obj = User.objects.get(email=username_or_email)
+                username = user_obj.username
+            except User.DoesNotExist:
+                messages.error(request, 'Invalid email or password')
+                return render(request, 'users/login.html')
+        else:
+            username = username_or_email
+
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
             login(request, user)
             return render(request, 'home.html')
         else:
@@ -183,23 +195,14 @@ def delete_address(request, address_id):
     messages.success(request, 'Address deleted successfully!')
     return redirect('addresses')
 
-def set_default_address(request):
-    try:
-        address = Address.objects.get(user=request.user, is_default=True)
-        return JsonResponse({
-            'status': 'success',
-            'address': {
-                'full_name': address.full_name,
-                'street_address': address.street_address,
-                'city': address.city,
-                'state': address.state,
-                'postal_code': address.postal_code,
-                'country': address.country,
-                'phone_number': address.phone_number
-            }
-        })
-    except Address.DoesNotExist:
-        return JsonResponse({'status': 'error', 'message': 'No default address found.'})
+def set_default_address(request, address_id):
+    """Set an address as default."""
+    address = get_object_or_404(Address, id=address_id, user=request.user)
+    Address.objects.filter(user=request.user, is_default=True).update(is_default=False)
+    address.is_default = True
+    address.save()
+    messages.success(request, 'Default address updated successfully!')
+    return redirect('addresses')
 
 def is_social_user(user):
     return hasattr(user, 'socialaccount_set') and user.socialaccount_set.exists()

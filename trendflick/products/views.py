@@ -70,26 +70,45 @@ def remove_from_cart(request, product_id):
     return redirect(request.META.get('HTTP_REFERER', 'products:all_product'))
 
 def all_product(request, category):
+    query = request.GET.get('q', '')
+    min_price = request.GET.get('min_price')
+    max_price = request.GET.get('max_price')
+    sort = request.GET.get('sort', 'relevance')
+
+    # Get products based on category
     if category != 'all':
         category_obj = get_object_or_404(Category, slug=category)
-        products_list = Product.objects.filter(category=category_obj)
+        products = Product.objects.filter(category=category_obj)
     else:
         category_obj = None
-        products_list = Product.objects.all()
+        products = Product.objects.all()
 
-    sort = request.GET.get('sort', 'newest')
-    if sort == 'price_low':
-        products_list = products_list.order_by('price')
+    # Search query
+    if query:
+        products = products.filter(
+            Q(name__icontains=query) | Q(description__icontains=query)
+        )
+
+    # Price filtering
+    if min_price:
+        products = products.filter(price__gte=min_price)
+    if max_price:
+        products = products.filter(price__lte=max_price)
+
+    # Sorting
+    if sort == 'newest':
+        products = products.order_by('-created_at')
+    elif sort == 'price_low':
+        products = products.order_by('price')
     elif sort == 'price_high':
-        products_list = products_list.order_by('-price')
+        products = products.order_by('-price')
     elif sort == 'name':
-        products_list = products_list.order_by('name')
-    else:
-        products_list = products_list.order_by('-created_at')
+        products = products.order_by('name')
+    # else: relevance (default queryset)
 
+    # Cart and wishlist flags
     cart_product_ids = set()
     wishlist_product_ids = set()
-
     if request.user.is_authenticated:
         cart_product_ids = set(
             CartItem.objects.filter(cart__user=request.user).values_list('product_id', flat=True)
@@ -101,23 +120,24 @@ def all_product(request, category):
             pass
 
     # Pagination
-    paginator = Paginator(products_list, 9)
+    paginator = Paginator(products, 9)
     page = request.GET.get('page')
     try:
-        products = paginator.page(page)
+        products_page = paginator.page(page)
     except PageNotAnInteger:
-        products = paginator.page(1)
+        products_page = paginator.page(1)
     except EmptyPage:
-        products = paginator.page(paginator.num_pages)
+        products_page = paginator.page(paginator.num_pages)
 
     # Annotate product flags
-    for product in products:
+    for product in products_page:
         product.in_cart = product.id in cart_product_ids
         product.in_wishlist = product.id in wishlist_product_ids
 
     context = {
         'category': category_obj,
-        'products': products,
+        'products': products_page,
+        'query': query,
         'current_sort': sort
     }
     return render(request, 'products/all-products.html', context)
