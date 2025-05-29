@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views.decorators.http import require_POST
 from products.models import Product
-from .models import Cart, CartItem
+from .models import *
 
 @login_required
 def cart(request):
@@ -58,3 +58,72 @@ def update_cart(request):
         messages.error(request, "Cart item not found.")
     
     return redirect('orders:cart')
+
+from decimal import Decimal
+
+@login_required
+def checkout_view(request):
+    cart = Cart.objects.filter(user=request.user).first()
+    if not cart or cart.items.count() == 0:
+        messages.warning(request, "Your cart is empty.")
+        return redirect('orders:cart')
+
+    profile = request.user.profile
+    context = {
+        'cart': cart,
+        'cart_items': cart.items.all(),
+        'subtotal': cart.total,
+        'shipping_cost': Decimal('0.00') if cart.total >= 100 else Decimal('10.00'),
+        'total': cart.total + (Decimal('0.00') if cart.total >= 100 else Decimal('10.00')),
+        'profile': profile,
+    }
+    return render(request, 'orders/checkout.html', context)
+
+@login_required
+def place_order_view(request):
+    if request.method == 'POST':
+        cart = Cart.objects.filter(user=request.user).first()
+        if not cart or cart.items.count() == 0:
+            messages.warning(request, "Cart is empty.")
+            return redirect('orders:cart')
+
+        shipping_address = request.POST.get('address')
+        phone = request.POST.get('phone')
+        email = request.POST.get('email')
+        notes = request.POST.get('notes', '')
+
+        subtotal = cart.total
+        shipping_cost = Decimal('0.00') if subtotal >= 100 else Decimal('10.00')
+        total = subtotal + shipping_cost
+
+        order = Order.objects.create(
+            user=request.user,
+            shipping_address=shipping_address,
+            phone=phone,
+            email=email,
+            subtotal=subtotal,
+            shipping_cost=shipping_cost,
+            total=total,
+            notes=notes,
+        )
+
+        for item in cart.items.all():
+            OrderItem.objects.create(
+                order=order,
+                product=item.product,
+                product_name=item.product.name,
+                product_price=item.product.price,
+                quantity=item.quantity,
+                size=item.size,
+                total=item.total,
+            )
+
+        cart.items.all().delete()
+        messages.success(request, "Order placed successfully!")
+        return redirect('orders:success', order_id=order.id)
+    return redirect('orders:checkout')
+
+@login_required
+def order_success_view(request, order_id):
+    order = Order.objects.get(id=order_id, user=request.user)
+    return render(request, 'orders/order-success.html', {'order': order})
