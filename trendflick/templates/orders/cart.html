@@ -87,7 +87,7 @@
                 </div>
 
                 <!-- Continue Shopping -->
-                <a href="{% url 'products:category' 'all' %}" class="btn btn-outline-dark w-100 mt-3">
+                <a href="{% url 'products:all_product' 'all' %}" class="btn btn-outline-dark w-100 mt-3">
                     <i class="fas fa-arrow-left me-2"></i>Continue Shopping
                 </a>
             </div>
@@ -97,7 +97,7 @@
             <i class="fas fa-shopping-cart fa-4x text-muted mb-4"></i>
             <h3>Your cart is empty</h3>
             <p class="text-muted mb-4">Looks like you haven't added anything to your cart yet.</p>
-            <a href="{% url 'products:category' 'all' %}" class="btn btn-dark">Start Shopping</a>
+            <a href="{% url 'products:all_product' 'all' %}" class="btn btn-dark">Start Shopping</a>
         </div>
     {% endif %}
 </div>

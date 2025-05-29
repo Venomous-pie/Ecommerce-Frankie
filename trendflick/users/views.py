@@ -66,6 +66,34 @@ def manage_account(request):
         pass
     return render(request, 'users/manage_account.html')
 
+def change_password(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')
+
+        user = request.user
+
+        # Update username and email
+        user.username = username
+        user.email = email
+
+        # Handle password change if both fields are filled
+        if password or confirm_password:
+            if password == confirm_password:
+                user.set_password(password)
+                messages.success(request, 'Password updated successfully.')
+            else:
+                return redirect('change_password')
+
+        user.save()
+        messages.success(request, 'Account details updated successfully.')
+
+        # If password changed, relogin the user
+        return redirect('login')
+    return render(request, 'users/change_password.html') 
+
 @login_required
 def orders(request):
     return render(request, 'users/orders.html')
@@ -86,30 +114,22 @@ def password_reset(request):
     return render(request, 'users/password_reset.html')
 
 @login_required
-def add_to_wishlist(request, pk):
+@require_POST
+def toggle_wishlist(request, pk):
     product = get_object_or_404(Product, pk=pk)
     wishlist, _ = Wishlist.objects.get_or_create(user=request.user)
 
     if wishlist.products.filter(pk=product.pk).exists():
-        messages.info(request, "Item already in wishlist.")
+        wishlist.products.remove(product)
+        in_wishlist = False
     else:
         wishlist.products.add(product)
-        messages.success(request, "Item added to wishlist.")
+        in_wishlist = True
 
-    return redirect(request.META.get('HTTP_REFERER', '/'))
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'success': True, 'in_wishlist': in_wishlist})
 
-
-@login_required
-def remove_from_wishlist(request, pk):
-    product = get_object_or_404(Product, pk=pk)
-    wishlist = get_object_or_404(Wishlist, user=request.user)
-
-    if wishlist.products.filter(pk=product.pk).exists():
-        wishlist.products.remove(product)
-        messages.success(request, "Item removed from wishlist.")
-    else:
-        messages.info(request, "Item not found in wishlist.")
-
+    # fallback for normal POST
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
 def addresses_view(request):

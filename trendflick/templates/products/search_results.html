@@ -68,10 +68,10 @@
                                     </div>
 
                                     {% if user.is_authenticated %}
-                                        <form method="POST" action="{% url 'users:add_to_wishlist' product.id %}" class="wishlist-form">
+                                        <form method="POST" action="{% url 'users:toggle_wishlist' product.id %}" class="wishlist-form">
                                             {% csrf_token %}
                                             <input type="hidden" name="product_id" value="{{ product.id }}">
-                                            <button type="submit" class="wishlist-btn">
+                                            <button type="submit" class="wishlist-btn" aria-label="Toggle wishlist">
                                                 {% if product.in_wishlist %}
                                                     <i class="fas fa-heart text-danger"></i>
                                                 {% else %}
@@ -156,7 +156,7 @@
                     <i class="fas fa-search fa-4x text-muted mb-4"></i>
                     <h3>No products found</h3>
                     <p class="text-muted">Try adjusting your search or filters.</p>
-                    <a href="{% url 'products:category' 'all' %}" class="btn btn-dark">Browse All Products</a>
+                    <a href="{% url 'products:all_product' 'all' %}" class="btn btn-dark">Browse All Products</a>
                 </div>
             {% endif %}
         </div>

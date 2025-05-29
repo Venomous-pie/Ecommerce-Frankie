@@ -3,7 +3,7 @@
 {% block content %}
 <style>
     .profile-sidebar {
-        background: #371c96;
+        background:rgb(226, 224, 233);
         border-radius: 16px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         padding: 32px 0 32px 0;
@@ -18,7 +18,7 @@
     }
     .profile-sidebar .nav-link.active, .profile-sidebar .nav-link:hover {
         background: #23247a52;
-        color: #ff5e3a;
+        color:rgb(248, 248, 248);
     }
 
     .form-label {
@@ -67,7 +67,7 @@
     }
 </style>
 
-<div class="container" style="background: #fafafa; min-height: 80vh; padding: 40px 0;">
+<div class="container" style="background: #fafafa; min-height: 80vh; padding: 30px 0;">
     <div class="row justify-content-center">
         <div class="col-lg-3 mb-4 my-4">
             <div class="profile-sidebar">
@@ -77,12 +77,11 @@
                     </div>
                     <div class="ms-3">
                         <div style="font-weight:600; font-size: 2rem; color:#fdfbfb;">{{ user.username }}</div>
-                        <div style="font-size:0.95rem; color:#888; cursor:pointer;">✎ Edit Profile</div>
                     </div>
                 </div>
                 <hr>
                 <nav class="nav flex-column">
-                    <a class="nav-link" href="#">Profile</a>
+                    <a class="nav-link" href="{% url 'users:manage_account' %}">Profile</a>
                     <a class="nav-link" href="#">Banks & Cards</a>
                     <a class="nav-link" href="#">Addresses</a>
                     <a class="nav-link" href="#">Change Password</a>
@@ -91,7 +90,7 @@
                 </nav>
                 <hr>
                 <nav class="nav flex-column">
-                    <a class="nav-link" href="#"><i class="fa fa-shopping-bag me-2"></i>My Purchase</a>
+                    <a class="nav-link" href="{% url 'users:orders' %}"><i class="fa fa-shopping-bag me-2"></i>My Purchase</a>
                     <a class="nav-link" href="#"><i class="fa fa-bell me-2"></i>Notifications</a>
                     <a class="nav-link" href="#"><i class="fa fa-ticket me-2"></i>My Vouchers</a>
                     <a class="nav-link" href="#"><i class="fa fa-coins me-2"></i>My Coins</a>
@@ -171,4 +170,5 @@
         </div>
     </div>
 </div>
+
 {% endblock %} 

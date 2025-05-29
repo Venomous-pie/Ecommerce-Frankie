@@ -11,10 +11,12 @@ from django.db.models import Q
 from orders.models import CartItem, Cart
 from users.models import Wishlist
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from products.models import Category
 
 
 def home(request):
-    return render(request, 'home.html')
+    categories = Category.objects.all()[:6]
+    return render(request, 'home.html', {'categories': categories})
 
 def about(request):
     return render(request, 'core/about.html')

@@ -18,7 +18,7 @@
     }
     .profile-sidebar .nav-link.active, .profile-sidebar .nav-link:hover {
         background: #23247a52;
-        color:rgb(62, 128, 221);
+        color:rgb(248, 248, 248);
     }
     
     .address-header {
@@ -123,32 +123,36 @@
     }
 </style>
 <!-- user content -->
-<div class="container-fluid" style="background: #fafafa; min-height: 80vh; padding: 40px 0;">
+<div class="container-fluid" style="background: #fafafa; min-height: 80vh; padding: 10px 0;">
     <p class="text-center text-muted my-3" style="font-size: 1.50rem; font-weight: bold;">Make your address easy to locate</p>
     <div class="row justify-content-center">
-        <div class="col-lg-3 mb-4 my-3">
-            <div class="profile-sidebar">
+        <div class="col-lg-3">
+            <div class="profile-sidebar ms-3">
                 <div class="d-flex align-items-center mb-4 px-4">
                     <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width:48px; height:48px; font-size:1.5rem;">
                         <i class="fa fa-user"></i>
                     </div>
                     <div class="ms-3">
-                        <div style="font-weight:600; font-size: 2rem; color:rgb(0, 0, 0);">{{ user.username }}</div>
-                        <div style="font-size:0.95rem; color:rgb(0, 0, 0, 0.47); cursor:pointer;">✎ Edit Profile</div>
+                        <div style="font-weight:600; font-size: 2rem; color:rgb(0, 0, 0); display: flex; align-items: center;">
+                            {{ user.username }}
+                            <span title="Verified" style="margin-left: 8px; color: #2196f3; font-size: 1.0rem;">
+                                <i class="fa fa-check-circle"></i>
+                            </span>
+                        </div>
                     </div>
                 </div>
                 <hr>
                 <nav class="nav flex-column">
-                    <a class="nav-link" href="#">Profile</a>
+                    <a class="nav-link" href="{% url 'users:manage_account' %}">Profile</a>
                     <a class="nav-link" href="#">Banks & Cards</a>
-                    <a class="nav-link" href="#">Addresses</a>
+                    <a class="nav-link active" href="#">Addresses</a>
                     <a class="nav-link" href="#">Change Password</a>
                     <a class="nav-link" href="#">Privacy Settings</a>
                     <a class="nav-link" href="#">Notification Settings</a>
                 </nav>
                 <hr>
                 <nav class="nav flex-column">
-                    <a class="nav-link" href="#"><i class="fa fa-shopping-bag me-2"></i>My Purchase</a>
+                    <a class="nav-link" href="{% url 'users:orders' %}"><i class="fa fa-shopping-bag me-2"></i>My Purchases</a>
                     <a class="nav-link" href="#"><i class="fa fa-bell me-2"></i>Notifications</a>
                     <a class="nav-link" href="#"><i class="fa fa-ticket me-2"></i>My Vouchers</a>
                     <a class="nav-link" href="#"><i class="fa fa-coins me-2"></i>My Coins</a>
@@ -162,7 +166,7 @@
                     <div>
                         <div class="address-label">My Addresses</div>
                     </div>
-                    <a href="#" class="add-address-btn">
+                    <a href="{% url 'users:add_address'%}" class="add-address-btn">
                         <span style="font-size: 1.3rem; margin-right: 6px;">&#43;</span> Add New Address
                     </a>
                 </div>

@@ -62,6 +62,23 @@ body {
     opacity: 1;
 }
 
+.tf-wishlist-btn {
+    top: 10px;
+    right: 10px;
+    background: white;
+    border: none;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    z-index: 1;
+    padding: 0;
+}
+
 .wishlist-btn {
     position: absolute;
     top: 10px;

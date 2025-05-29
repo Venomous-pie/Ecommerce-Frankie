@@ -6,20 +6,23 @@
 <div class="container my-5">
     <h1 class="mb-4">My Wishlist <span class="text-danger">&hearts;</span></h1>
     {% if wishlist_items %}
-        <div class="row">
+        <div class="row" id="wishlist-items-container">
             {% for item in wishlist_items %}
-                <div class="col-md-4 mb-4">
+                <div class="col-md-4 mb-4 wishlist-item" data-product-id="{{ item.id }}">
                     <div class="card h-100 shadow-sm">
                         <img src="{{ item.image.url }}" class="card-img-top" alt="{{ item.name }}">
                         <div class="card-body">
                             <h5 class="card-title">{{ item.name }}</h5>
                             <p class="card-text text-muted">{{ item.description|truncatewords:15 }}</p>
                             <p class="card-text fw-bold">${{ item.price }}</p>
-                            <div class="d-flex justify-content-between">
+                            <div class="d-flex justify-content-between align-items-center">
                                 <a href="{% url 'products:detail' item.id %}" class="btn btn-primary">View Product</a>
-                                <form action="{% url 'users:remove_from_wishlist' item.id %}" method="POST">
+                                <form method="POST" action="{% url 'users:toggle_wishlist' item.id %}" class="wishlist-form">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-danger">Remove</button>
+                                    <input type="hidden" name="product_id" value="{{ item.id }}">
+                                    <button type="submit" class="btn btn-outline-danger" aria-label="Remove from wishlist">
+                                        <i class="fas fa-heart"></i> Remove
+                                    </button>
                                 </form>
                             </div>
                         </div>
@@ -33,4 +36,50 @@
         </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.wishlist-form').forEach(form => {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const url = form.action;
+      const csrfToken = form.querySelector('input[name="csrfmiddlewaretoken"]').value;
+
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrfToken,
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: new FormData(form),
+      })
+      .then(response => response.json())
+      .then(data => {
+        if(data.success) {
+          // Remove item from DOM on toggle off (remove)
+          if (!data.in_wishlist) {
+            const productId = form.querySelector('input[name="product_id"]').value;
+            const itemCard = document.querySelector(`.wishlist-item[data-product-id="${productId}"]`);
+            if(itemCard) itemCard.remove();
+
+            // Optional: Show message if wishlist empty
+            if(document.querySelectorAll('.wishlist-item').length === 0) {
+              document.getElementById('wishlist-items-container').innerHTML = `
+                <div class="alert alert-info text-center" role="alert">
+                  Your wishlist is empty. Start adding your favorite products!
+                </div>`;
+            }
+          }
+        } else if(data.error) {
+          alert(data.error);
+        }
+      })
+      .catch(() => alert('Something went wrong. Please try again.'));
+    });
+  });
+});
+</script>
 {% endblock %}

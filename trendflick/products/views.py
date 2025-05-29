@@ -13,9 +13,17 @@ from users.models import Wishlist
 @login_required
 def add_to_cart(request, product_id):
     if request.method == 'POST':
+        quantity = request.POST.get('quantity')
+        try:
+            quantity = int(quantity)
+            if quantity < 1:
+                quantity = 1
+        except (TypeError, ValueError):
+            quantity = 1
+
         if not product_id:
             messages.error(request, "Invalid product.")
-            return redirect('products:category', category='all')
+            return redirect('products:all_product', category='all')
 
         product = get_object_or_404(Product, id=product_id)
 
@@ -28,26 +36,28 @@ def add_to_cart(request, product_id):
         )
 
         if not created:
-            cart_item.quantity += 1
+            cart_item.quantity += quantity
+            cart_item.save()
+        else:
+            cart_item.quantity = quantity
             cart_item.save()
 
-        messages.success(request, f"Added {product.name} to your cart.")
-        return redirect(request.META.get('HTTP_REFERER', 'products:category'))
+        messages.success(request, f"Added {product.name} (x{quantity}) to your cart.")
+        return redirect(request.META.get('HTTP_REFERER', 'products:all_product'))
 
     return render(request, 'orders/cart.html')
-
 
 @login_required
 def remove_from_cart(request, product_id):
     if not product_id:
         messages.error(request, "Invalid product.")
-        return redirect('products:category', category='all')
+        return redirect('products:all_product', category='all')
 
     try:
         cart = Cart.objects.get(user=request.user)
     except Cart.DoesNotExist:
         messages.error(request, "Cart not found.")
-        return redirect(request.META.get('HTTP_REFERER', 'products:category'))
+        return redirect(request.META.get('HTTP_REFERER', 'products:all_product'))
 
     cart_item = CartItem.objects.filter(cart=cart, product_id=product_id).first()
 
@@ -57,13 +67,16 @@ def remove_from_cart(request, product_id):
     else:
         messages.error(request, "Item not found in cart.")
 
-    return redirect(request.META.get('HTTP_REFERER', 'products:category'))
+    return redirect(request.META.get('HTTP_REFERER', 'products:all_product'))
 
+def all_product(request, category):
+    if category != 'all':
+        category_obj = get_object_or_404(Category, slug=category)
+        products_list = Product.objects.filter(category=category_obj)
+    else:
+        category_obj = None
+        products_list = Product.objects.all()
 
-def category(request, category):
-    products_list = Product.objects.filter(category=category) if category != 'all' else Product.objects.all()
-
-    # Handle sorting
     sort = request.GET.get('sort', 'newest')
     if sort == 'price_low':
         products_list = products_list.order_by('price')
@@ -87,7 +100,6 @@ def category(request, category):
         except Wishlist.DoesNotExist:
             pass
 
-
     # Pagination
     paginator = Paginator(products_list, 9)
     page = request.GET.get('page')
@@ -98,22 +110,45 @@ def category(request, category):
     except EmptyPage:
         products = paginator.page(paginator.num_pages)
 
-    # Annotate products with flags only for authenticated users
+    # Annotate product flags
     for product in products:
         product.in_cart = product.id in cart_product_ids
         product.in_wishlist = product.id in wishlist_product_ids
 
     context = {
-        'category': category,
+        'category': category_obj,
         'products': products,
         'current_sort': sort
     }
-    return render(request, 'products/category.html', context)
+    return render(request, 'products/all-products.html', context)
 
 def detail(request, product_id):
     product = get_object_or_404(Product, id=product_id)
+    category = product.category
+    related_products = Product.objects.filter(category=category).exclude(id=product_id)[:4]
+
+    wishlist_product_ids = set()
+    cart_product_ids = set()
+
+    if request.user.is_authenticated:
+        # Get all products in user's cart
+        cart_product_ids = set(
+            CartItem.objects.filter(cart__user=request.user).values_list('product_id', flat=True)
+        )
+        # Get all products in user's wishlist
+        try:
+            wishlist = Wishlist.objects.get(user=request.user)
+            wishlist_product_ids = set(wishlist.products.values_list('id', flat=True))
+        except Wishlist.DoesNotExist:
+            pass
+
+    # Add boolean flags for template logic
+    product.in_wishlist = product.id in wishlist_product_ids
+    product.in_cart = product.id in cart_product_ids
+
     context = {
-        'product': product
+        'product': product,
+        'related_products': related_products,
     }
     return render(request, 'products/product_detail.html', context)
 

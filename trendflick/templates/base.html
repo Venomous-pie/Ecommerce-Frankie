@@ -31,10 +31,10 @@
                         <a class="nav-link" href="{% url 'core:home' %}">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'products:category' 'all' %}">Shop</a>
+                        <a class="nav-link" href="{% url 'products:all_product' 'all' %}">Shop</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'products:category' 'all' %}">Category</a>
+                        <a class="nav-link" href="{% url 'products:all_product' 'all' %}">Category</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'core:about' %}">About</a>
@@ -140,10 +140,10 @@
                 <div class="col-lg-3 col-md-6 mb-4 mb-lg-0">
                     <h6 class="text-white mb-4">Categories</h6>
                     <ul class="footer-links">
-                        <li class="mb-2"><a href="{% url 'products:category' 'clothes' %}">Clothes</a></li>
-                        <li class="mb-2"><a href="{% url 'products:category' 'shoes' %}">Shoes</a></li>
-                        <li class="mb-2"><a href="{% url 'products:category' 'accessories' %}">Accessories</a></li>
-                        <li class="mb-2"><a href="{% url 'products:category' 'sale' %}">Sale</a></li>
+                        <li class="mb-2"><a href="{% url 'products:all_product' 'clothes' %}">Clothes</a></li>
+                        <li class="mb-2"><a href="{% url 'products:all_product' 'shoes' %}">Shoes</a></li>
+                        <li class="mb-2"><a href="{% url 'products:all_product' 'accessories' %}">Accessories</a></li>
+                        <li class="mb-2"><a href="{% url 'products:all_product' 'sale' %}">Sale</a></li>
                     </ul>
                 </div>
                 <div class="col-lg-3 col-md-6 mb-4 mb-lg-0">

@@ -7,20 +7,18 @@
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Home</a></li>
-            <li class="breadcrumb-item"><a href="{% url 'products:category' product.category %}">{{ product.category|title }}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'products:all_product' 'all' %}">All</a></li>
             <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
         </ol>
     </nav>
 
     <div class="row">
-        <!-- Product Images -->
         <div class="col-lg-6 mb-4">
             <div class="product-images">
                 <img src="{{ product.image.url }}" class="img-fluid rounded-3" alt="{{ product.name }}">
             </div>
         </div>
 
-        <!-- Product Details -->
         <div class="col-lg-6">
             <h1 class="mb-3">{{ product.name }}</h1>
             <div class="mb-3">
@@ -33,41 +31,38 @@
 
             <p class="text-muted mb-4">{{ product.description }}</p>
 
-            <form method="POST" action="{% url 'products:add_to_cart' product.id %}" class="mb-4">
-                {% csrf_token %}
-                
-                {% if product.sizes %}
-                    <div class="mb-4">
-                        <label class="form-label">Size</label>
-                        <div class="size-selector">
-                            {% for size in product.sizes %}
-                                <input type="radio" class="btn-check" name="size" id="size-{{ size }}" value="{{ size }}" {% if forloop.first %}checked{% endif %}>
-                                <label class="btn btn-outline-dark me-2" for="size-{{ size }}">{{ size }}</label>
-                            {% endfor %}
-                        </div>
-                    </div>
-                {% endif %}
-                
-                <div class="mb-4">
-                    <label class="form-label">Quantity</label>
-                    <div class="input-group" style="width: 150px;">
-                        <button type="button" class="btn btn-outline-dark" onclick="updateQuantity(-1)">-</button>
-                        <input type="number" class="form-control text-center" id="quantity" name="quantity" value="1" min="1" max="10" required>
-                        <button type="button" class="btn btn-outline-dark" onclick="updateQuantity(1)">+</button>
-                    </div>
-                </div>
+            <div class="input-group mb-3" style="width: 150px;">
+                <button type="button" class="btn btn-outline-dark" onclick="updateQuantity(-1)">-</button>
+                <input type="number" class="form-control text-center" id="visibleQuantity" name="quantity" value="1" min="1" max="10" required>
+                <button type="button" class="btn btn-outline-dark" onclick="updateQuantity(1)">+</button>
+            </div>
 
-                <input type="hidden" name="product_id" value="{{ product.id }}">
+            <div class="d-flex align-items-center gap-2 mb-4">
+                <form method="POST" action="{% url 'products:add_to_cart' product.id %}" class="flex-grow-1 mb-0" id="addToCartForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="product_id" value="{{ product.id }}">
+                    <input type="hidden" name="quantity" id="hiddenQuantity" value="1">
 
-                <div class="d-flex gap-2 mb-4">
-                    <button type="submit" class="btn btn-dark btn-lg flex-grow-1">Add to Cart</button>
-                    <button type="button" class="btn btn-outline-dark btn-lg" onclick="addToWishlist({{ product.id }})">
-                        <i class="far fa-heart"></i>
+                    {% if product.in_cart %}
+                        <button class="btn btn-success btn-lg w-100" disabled>In Cart</button>
+                    {% else %}
+                        <button type="submit" class="btn btn-dark btn-lg w-100">Add to Cart</button>
+                    {% endif %}
+                </form>
+
+                <form method="POST" action="{% url 'users:toggle_wishlist' product.id %}" class="mb-0">
+                    {% csrf_token %}
+                    <input type="hidden" name="product_id" value="{{ product.id }}">
+                    <button type="submit" class="btn btn-outline-dark btn-lg tf-wishlist-btn px-3 d-flex align-items-center justify-content-center" aria-label="Toggle wishlist">
+                        {% if product.in_wishlist %}
+                            <i class="fas fa-heart text-danger"></i>
+                        {% else %}
+                            <i class="far fa-heart"></i>
+                        {% endif %}
                     </button>
-                </div>
-            </form>
+                </form>
+            </div>
 
-            <!-- Product Features -->
             <div class="border-top pt-4">
                 <div class="row g-3">
                     <div class="col-6">
@@ -93,7 +88,6 @@
         </div>
     </div>
 
-    <!-- Product Description Tabs -->
     <div class="row mt-5">
         <div class="col-12">
             <ul class="nav nav-tabs" id="productTabs" role="tablist">
@@ -119,31 +113,50 @@
         </div>
     </div>
 
-    <!-- Related Products -->
     <section class="mt-5">
         <h3 class="mb-4">You May Also Like</h3>
         <div class="row" id="relatedProducts">
-            <!-- Related products will be loaded dynamically via JavaScript -->
+            {% for product in related_products %}
+                <div class="col-6 col-md-3 mb-4">
+                    <div class="card h-100 text-center">
+                        <a href="{% url 'products:detail' product.id %}">
+                            <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                        </a>
+                        <div class="card-body">
+                            <h6 class="card-title">{{ product.name|truncatechars:25 }}</h6>
+                            <p class="text-muted">${{ product.price }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12">
+                    <p class="text-muted text-center">No related products found.</p>
+                </div>
+            {% endfor %}
         </div>
     </section>
+
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
     function updateQuantity(change) {
-        const input = document.getElementById('quantity');
-        const newValue = parseInt(input.value) + change;
-        if (newValue >= 1 && newValue <= 10) {
-            input.value = newValue;
-        }
+    const input = document.getElementById('visibleQuantity');
+    let newVal = parseInt(input.value) + change;
+    if (newVal < 1) newVal = 1;
+    if (newVal > 10) newVal = 10;
+    input.value = newVal;
     }
 
-    document.getElementById('addToCartForm').addEventListener('submit', function(e) {
+    document.getElementById('addToCartForm').addEventListener('submit', function (e) {
         e.preventDefault();
-        const size = document.querySelector('input[name="size"]:checked')?.value;
-        const quantity = parseInt(document.getElementById('quantity').value);
-        addToCart({{ product.id }}, size, quantity);
+        const visibleQty = document.getElementById('visibleQuantity').value;
+        console.log('Visible quantity before submit:', visibleQty); // debug
+        document.getElementById('hiddenQuantity').value = visibleQty;
+        console.log('Hidden quantity after update:', document.getElementById('hiddenQuantity').value); // debug
+        this.submit();
     });
+
 </script>
 {% endblock %} 
