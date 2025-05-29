@@ -4,13 +4,15 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
-import json
-from .models import *
-from products.models import Product
-from django.contrib.auth.models import User
+from django.core.mail import send_mail
+from django.conf import settings
+from django.utils import timezone
 from django.contrib.auth.hashers import make_password
+from django.contrib.auth.models import User
 
-
+from .models import PasswordResetCode, Wishlist, Address
+from products.models import Product
+from orders.models import Order
 
 def login_view(request):
     if request.user.is_authenticated:
@@ -40,7 +42,6 @@ def register(request):
         password1 = request.POST.get('password1')
         password2 = request.POST.get('password2')
 
-        # Basic validation
         if not username or not email or not password1 or not password2:
             messages.error(request, 'All fields are required.')
         elif password1 != password2:
@@ -62,7 +63,6 @@ def register(request):
 
 def manage_account(request):
     if request.method == 'POST':
-        # Add your account management logic here
         pass
     return render(request, 'users/manage_account.html')
 
@@ -74,12 +74,9 @@ def change_password(request):
         confirm_password = request.POST.get('confirm_password')
 
         user = request.user
-
-        # Update username and email
         user.username = username
         user.email = email
 
-        # Handle password change if both fields are filled
         if password or confirm_password:
             if password == confirm_password:
                 user.set_password(password)
@@ -89,14 +86,13 @@ def change_password(request):
 
         user.save()
         messages.success(request, 'Account details updated successfully.')
-
-        # If password changed, relogin the user
-        return redirect('login')
+        return redirect('users:login')
     return render(request, 'users/change_password.html') 
 
 @login_required
 def orders(request):
-    return render(request, 'users/orders.html')
+    orders = Order.objects.filter(user=request.user).order_by('-created_at')
+    return render(request, 'orders/orders.html', {'orders': orders})
 
 @login_required
 def wishlist(request):
@@ -106,10 +102,8 @@ def wishlist(request):
     }
     return render(request, 'orders/wishlist.html', context)
 
-
 def password_reset(request):
     if request.method == 'POST':
-        # Add your password reset logic here
         pass
     return render(request, 'users/password_reset.html')
 
@@ -129,11 +123,9 @@ def toggle_wishlist(request, pk):
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         return JsonResponse({'success': True, 'in_wishlist': in_wishlist})
 
-    # fallback for normal POST
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
 def addresses_view(request):
-    """View for managing user addresses."""
     addresses = Address.objects.filter(user=request.user)
     return render(request, 'users/addresses.html', {
         'addresses': addresses,
@@ -142,9 +134,7 @@ def addresses_view(request):
 
 @login_required(login_url='login')
 def add_address(request):
-    """Add a new address."""
     if request.method == 'POST':
-        # If setting as default, unset other default addresses
         if request.POST.get('is_default'):
             Address.objects.filter(user=request.user, is_default=True).update(is_default=False)
         
@@ -164,13 +154,10 @@ def add_address(request):
     
     return render(request, 'users/add_address.html')
 
-
 def edit_address(request, address_id):
-    """Edit an existing address."""
     address = get_object_or_404(Address, id=address_id, user=request.user)
     
     if request.method == 'POST':
-        # If setting as default, unset other default addresses
         if request.POST.get('is_default'):
             Address.objects.filter(user=request.user, is_default=True).update(is_default=False)
         
@@ -189,16 +176,13 @@ def edit_address(request, address_id):
     
     return render(request, 'users/edit_address.html', {'address': address})
 
-
 def delete_address(request, address_id):
-    """Delete an address."""
     address = get_object_or_404(Address, id=address_id, user=request.user)
     address.delete()
     messages.success(request, 'Address deleted successfully!')
     return redirect('addresses')
 
 def set_default_address(request):
-    """Get the default address for the user."""
     try:
         address = Address.objects.get(user=request.user, is_default=True)
         return JsonResponse({
@@ -215,3 +199,70 @@ def set_default_address(request):
         })
     except Address.DoesNotExist:
         return JsonResponse({'status': 'error', 'message': 'No default address found.'})
+
+def is_social_user(user):
+    return hasattr(user, 'socialaccount_set') and user.socialaccount_set.exists()
+
+def password_reset_request(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        try:
+            user = User.objects.get(email=email)
+            if is_social_user(user):
+                messages.error(request, "This account uses Google/Facebook login. Please login through social provider.")
+                return redirect('users:password_reset')
+
+            reset_code = PasswordResetCode.objects.create(user=user)
+            reset_url = request.build_absolute_uri(f"/users/password-reset/verify/?code={reset_code.code}")
+
+            send_mail(
+                'Password Reset Request',
+                f'Use the following link to reset your password: {reset_url}',
+                settings.DEFAULT_FROM_EMAIL,
+                [email],
+                fail_silently=False,
+            )
+            messages.success(request, "A reset link has been sent to your email.")
+        except User.DoesNotExist:
+            messages.error(request, "No account found with that email.")
+    return render(request, 'users/password_reset.html')
+
+def password_reset_verify(request):
+    code = request.GET.get('code')
+    try:
+        reset_entry = PasswordResetCode.objects.get(code=code, is_used=False)
+        if not reset_entry.is_valid():
+            messages.error(request, "This reset link has expired.")
+            return redirect('users:password_reset')
+        return render(request, 'users/password_reset_verify.html', {'code': code})
+    except PasswordResetCode.DoesNotExist:
+        messages.error(request, "Invalid or expired reset link.")
+        return redirect('users:password_reset')
+
+def password_reset_complete(request):
+    if request.method == 'POST':
+        code = request.POST.get('code')
+        password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')
+
+        if password != confirm_password:
+            messages.error(request, "Passwords do not match.")
+            return redirect(f'/users/password-reset/verify/?code={code}')
+
+        try:
+            reset_entry = PasswordResetCode.objects.get(code=code, is_used=False)
+            if not reset_entry.is_valid():
+                messages.error(request, "Reset link has expired.")
+                return redirect('users:password_reset')
+
+            user = reset_entry.user
+            user.set_password(password)
+            user.save()
+            reset_entry.is_used = True
+            reset_entry.save()
+
+            messages.success(request, "Password has been reset. You may now log in.")
+            return redirect('users:login')
+        except PasswordResetCode.DoesNotExist:
+            messages.error(request, "Invalid reset code.")
+    return redirect('users:password_reset')

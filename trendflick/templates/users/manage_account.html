@@ -202,38 +202,38 @@
                                     <label class="profile-form-label col-12">Date of birth</label>
                                     <div class="col-4">
 
-    <select class="form-control profile-form-input {% if dob_errors.dob_day %}is-invalid{% endif %}" name="dob_day">
-        <option value="">Date</option>
-        {% for d in days %}
-            <option value="{{ d }}" {% if request.POST.dob_day == d|stringformat:"s" %}selected{% endif %}>{{ d }}</option>
-        {% endfor %}
-    </select>
-    {% if dob_errors.dob_day %}
-        <div class="invalid-feedback">{{ dob_errors.dob_day }}</div>
-    {% endif %}
-</div>
-<div class="col-4">
-    <select class="form-control profile-form-input {% if dob_errors.dob_month %}is-invalid{% endif %}" name="dob_month">
-        <option value="">Month</option>
-        {% for m in months %}
-            <option value="{{ m }}" {% if request.POST.dob_month == m|stringformat:"s" %}selected{% endif %}>{{ m }}</option>
-        {% endfor %}
-    </select>
-    {% if dob_errors.dob_month %}
-        <div class="invalid-feedback">{{ dob_errors.dob_month }}</div>
-    {% endif %}
-</div>
-<div class="col-4">
-    <select class="form-control profile-form-input {% if dob_errors.dob_year %}is-invalid{% endif %}" name="dob_year">
-        <option value="">Year</option>
-        {% for y in years %}
-            <option value="{{ y }}" {% if request.POST.dob_year == y|stringformat:"s" %}selected{% endif %}>{{ y }}</option>
-        {% endfor %}
-    </select>
-    {% if dob_errors.dob_year %}
-        <div class="invalid-feedback">{{ dob_errors.dob_year }}</div>
-    {% endif %}
-</div>
+                                    <select class="form-control profile-form-input {% if dob_errors.dob_day %}is-invalid{% endif %}" name="dob_day">
+                                        <option value="">Date</option>
+                                        {% for d in days %}
+                                            <option value="{{ d }}" {% if request.POST.dob_day == d|stringformat:"s" %}selected{% endif %}>{{ d }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    {% if dob_errors.dob_day %}
+                                        <div class="invalid-feedback">{{ dob_errors.dob_day }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-4">
+                                    <select class="form-control profile-form-input {% if dob_errors.dob_month %}is-invalid{% endif %}" name="dob_month">
+                                        <option value="">Month</option>
+                                        {% for m in months %}
+                                            <option value="{{ m }}" {% if request.POST.dob_month == m|stringformat:"s" %}selected{% endif %}>{{ m }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    {% if dob_errors.dob_month %}
+                                        <div class="invalid-feedback">{{ dob_errors.dob_month }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-4">
+                                    <select class="form-control profile-form-input {% if dob_errors.dob_year %}is-invalid{% endif %}" name="dob_year">
+                                        <option value="">Year</option>
+                                        {% for y in years %}
+                                            <option value="{{ y }}" {% if request.POST.dob_year == y|stringformat:"s" %}selected{% endif %}>{{ y }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    {% if dob_errors.dob_year %}
+                                        <div class="invalid-feedback">{{ dob_errors.dob_year }}</div>
+                                    {% endif %}
+                                </div>
 
                                 </div>
                                 <button type="submit" class="btn btn-primary px-5 mt-2">Save</button>

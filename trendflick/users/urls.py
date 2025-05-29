@@ -20,4 +20,8 @@ urlpatterns = [
     path('addresses/edit/<int:address_id>/', views.edit_address, name='edit_address'),
     path('addresses/delete/<int:address_id>/', views.delete_address, name='delete_address'),
     path('addresses/set-default/<int:address_id>/', views.set_default_address, name='set_default_address'),
+
+    path('password-reset-request/', views.password_reset_request, name='password_reset_request'),
+    # path('password-reset/verify/', views.password_reset_verify, name='password_reset_verify'),
+    # path('password-reset/complete/', views.password_reset_complete, name='password_reset_complete'),
 ] 

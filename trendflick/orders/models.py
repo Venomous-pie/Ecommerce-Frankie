@@ -2,6 +2,41 @@ from django.db import models
 from django.contrib.auth.models import User
 from products.models import Product
 from decimal import Decimal
+from django.utils import timezone
+
+
+class PromoCode(models.Model):
+    code = models.CharField(max_length=50, unique=True)
+    discount_percent = models.PositiveIntegerField(null=True, blank=True)
+    expiration_date = models.DateTimeField(null=True, blank=True)
+    usage_limit = models.PositiveIntegerField(null=True, blank=True)
+    times_used = models.PositiveIntegerField(default=0, editable=False)
+    active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.code
+
+    def is_valid(self):
+        if not self.active:
+            return False
+        if self.expiration_date and timezone.now() > self.expiration_date:
+            return False
+        if self.usage_limit is not None and self.times_used >= self.usage_limit:
+            return False
+        return True
+
+    def apply_discount(self, original_price):
+        if not self.is_valid():
+            return original_price
+
+        if self.discount_percent:
+            discounted_price = original_price * (1 - self.discount_percent / 100)
+            # Ensure price doesn't go below zero
+            discounted_price = max(discounted_price, 0)
+        else:
+            discounted_price = original_price
+
+        return discounted_price
 
 class Cart(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

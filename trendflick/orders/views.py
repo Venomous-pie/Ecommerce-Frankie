@@ -4,21 +4,64 @@ from django.contrib import messages
 from django.views.decorators.http import require_POST
 from products.models import Product
 from .models import *
+from django.utils import timezone
+
 
 @login_required
 def cart(request):
     cart, _ = Cart.objects.get_or_create(user=request.user)
     cart_items = cart.items.all()
-    
+
     subtotal = sum(item.product.price * item.quantity for item in cart_items)
     shipping = 0 if subtotal >= 100 else 10
-    total = subtotal + shipping
-    
+    discount = 0
+    promo_code_obj = None
+    promo_code_error = None
+    promo_code_success = None  # New flag for success message
+    form_submitted = False
+
+    if request.method == 'POST':
+        form_submitted = True
+        promo_code_input = request.POST.get('promo_code', '').strip()
+
+        if promo_code_input:
+            try:
+                promo_code_obj = PromoCode.objects.get(
+                    code__iexact=promo_code_input,
+                    expiration_date__gte=timezone.now(),
+                    active=True,
+                )
+
+                if promo_code_obj.usage_limit is not None and promo_code_obj.times_used >= promo_code_obj.usage_limit:
+                    promo_code_error = "This promo code has reached its usage limit."
+                else:
+                    if promo_code_obj.discount_percent:
+                        discount = (subtotal * promo_code_obj.discount_percent) / 100
+                    else:
+                        discount = 0
+
+                    discount = min(discount, subtotal)
+
+                    # Mark success if no error
+                    promo_code_success = f'Promo code "{promo_code_obj.code}" applied! You saved ${discount:.2f}.'
+
+            except PromoCode.DoesNotExist:
+                promo_code_error = "Invalid or expired promo code."
+
+    total = subtotal + shipping - discount
+    if total < 0:
+        total = 0
+
     context = {
         'cart_items': cart_items,
         'subtotal': subtotal,
         'shipping': shipping,
-        'total': total
+        'discount': discount,
+        'total': total,
+        'promo_code': promo_code_obj,
+        'promo_code_error': promo_code_error,
+        'promo_code_success': promo_code_success,
+        'form_submitted': form_submitted,
     }
     return render(request, 'orders/cart.html', context)
 
@@ -127,3 +170,8 @@ def place_order_view(request):
 def order_success_view(request, order_id):
     order = Order.objects.get(id=order_id, user=request.user)
     return render(request, 'orders/order-success.html', {'order': order})
+
+@login_required
+def order_detail(request, order_id):
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    return render(request, 'orders/order_detail.html', {'order': order})

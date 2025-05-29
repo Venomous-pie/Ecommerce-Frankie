@@ -9,13 +9,25 @@
 
     <!-- Search Header -->
     <header class="text-center mb-5">
-        <h1 class="display-4 mb-3">Search Results</h1>
+    <h1 class="display-4 mb-3">
         {% if query %}
-            <p class="lead">Showing results for "<strong>{{ query }}</strong>"</p>
+            Search Results
+        {% elif category %}
+            Products in "{{ category.name }}"
         {% else %}
-            <p class="lead">Use the filters to refine your search</p>
+            All Products
         {% endif %}
-    </header>
+    </h1>
+
+    {% if query %}
+        <p class="lead">Showing results for "<strong>{{ query }}</strong>"</p>
+    {% elif category %}
+        <p class="lead">Browse products under the "{{ category.name }}" category.</p>
+    {% else %}
+        <p class="lead">Use the filters to refine your search or browse our collection.</p>
+    {% endif %}
+</header>
+
 
     <div class="row mb-4">
         <!-- Filters Sidebar -->

@@ -75,12 +75,27 @@
                         </div>
                         
                         <!-- Promo Code -->
-                        <form class="mb-4">
+                        <form method="POST" class="mb-4">
+                            {% csrf_token %}
                             <div class="input-group">
-                                <input type="text" class="form-control" placeholder="Promo code">
+                                <input type="text" name="promo_code" class="form-control" placeholder="Promo code" value="{{ promo_code.code|default:'' }}">
                                 <button class="btn btn-outline-dark" type="submit">Apply</button>
                             </div>
                         </form>
+
+                        {% if form_submitted %}
+                            {% if promo_code_success %}
+                                <div class="alert alert-success alert-dismissible fade show mt-2" role="alert">
+                                    {{ promo_code_success }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% elif promo_code_error %}
+                                <div class="alert alert-danger alert-dismissible fade show mt-2" role="alert">
+                                    {{ promo_code_error }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endif %}
+                        {% endif %}
 
                         <a href="{% url 'orders:place_order' %}" class="btn btn-dark w-100">Proceed to Checkout</a>
                     </div>

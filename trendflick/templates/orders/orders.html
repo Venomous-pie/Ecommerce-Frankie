@@ -4,7 +4,8 @@
 {% block content %}
 <div class="container mt-5">
     <h1 class="mb-4">My Orders</h1>
-    {% if not orders %}
+
+    {% if orders %}
         <div class="table-responsive">
             <table class="table table-bordered">
                 <thead class="table-dark">
@@ -20,11 +21,11 @@
                     {% for order in orders %}
                         <tr>
                             <td>{{ order.id }}</td>
-                            <td>{{ order.date|date:"M d, Y" }}</td>
+                            <td>{{ order.created_at|date:"M d, Y" }}</td>
                             <td>{{ order.status }}</td>
                             <td>${{ order.total }}</td>
                             <td>
-                                <a href="{% url 'users:order_detail' order.id %}" class="btn btn-sm btn-primary">View</a>
+                                <a href="{% url 'orders:order_detail' order.id %}" class="btn btn-sm btn-primary">View</a>
                             </td>
                         </tr>
                     {% endfor %}
@@ -32,7 +33,9 @@
             </table>
         </div>
     {% else %}
-        <p class="text-muted">You have no orders yet.</p>
+        <div class="alert alert-warning text-center" role="alert">
+            <strong>No orders found.</strong> You haven't placed any orders yet.
+        </div>
     {% endif %}
 </div>
 {% endblock %}
