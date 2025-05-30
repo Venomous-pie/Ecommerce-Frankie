@@ -10,4 +10,5 @@ urlpatterns = [
     path('faq/', views.faq, name='faq'),
     path('privacy/', views.privacy, name='privacy'),
     path('api/newsletter/subscribe/', views.newsletter_subscribe, name='newsletter_subscribe'),
+    path('newsletter/unsubscribe/', views.newsletter_unsubscribe, name='newsletter_unsubscribe'),
 ] 

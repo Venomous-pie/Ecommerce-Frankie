@@ -92,22 +92,194 @@
     </div>
 </section>
 
-<!-- Newsletter -->
+<!-- Newsletter Section -->
 <section class="newsletter-section">
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-lg-6 text-center">
-                <h3 class="mb-4">Subscribe to Our Newsletter</h3>
-                <p class="text-muted mb-4">Get updates about new products and special offers!</p>
-                <form class="newsletter-form" action="{% url 'core:newsletter_subscribe' %}" method="POST">
-                    {% csrf_token %}
-                    <div class="input-group">
-                        <input type="email" class="form-control" placeholder="Enter your email" required>
-                        <button class="btn btn-dark" type="submit">Subscribe</button>
-                    </div>
-                </form>
+            <div class="col-lg-6 text-center" id="newsletterContainer">
+                <div id="newsletterMessage" class="mb-3"></div>
+                {% comment %} Initial form rendering handled server-side based on subscription {% endcomment %}
+                {% if request.user.is_authenticated and request.user.email %}
+                    {% if is_subscribed %}
+                        <!-- Unsubscribe form -->
+                        <h3 class="mb-4">Subscribe to Our Newsletter</h3>
+                        <p class="text-muted mb-4">Get updates about new products and special offers!</p>
+                        <form id="unsubscribeForm">
+                            {% csrf_token %}
+                            <input type="hidden" name="email" value="{{ request.user.email }}">
+                            <button type="button" class="btn btn-outline-danger" id="unsubscribeBtn">Unsubscribe</button>
+                        </form>
+                    {% else %}
+                        <!-- Subscribe form -->
+                        <h3 class="mb-4">Subscribe to Our Newsletter</h3>
+                        <p class="text-muted mb-4">Get updates about new products and special offers!</p>
+                        <form id="subscribeForm" action="{% url 'core:newsletter_subscribe' %}" method="POST">
+                            {% csrf_token %}
+                            <div class="input-group">
+                                <input type="email" class="form-control" value="{{ request.user.email }}" disabled>
+                                <input type="hidden" name="email" value="{{ request.user.email }}">
+                                <button class="btn btn-dark" type="submit">Subscribe</button>
+                            </div>
+                        </form>
+                    {% endif %}
+                {% else %}
+                    <!-- Guest subscribe form -->
+                    <h3 class="mb-4">Subscribe to Our Newsletter</h3>
+                    <p class="text-muted mb-4">Get updates about new products and special offers!</p>
+                    <form id="subscribeForm" action="{% url 'core:newsletter_subscribe' %}" method="POST">
+                        {% csrf_token %}
+                        <div class="input-group">
+                            <input type="email" name="email" class="form-control" placeholder="Enter your email" required>
+                            <button class="btn btn-dark" type="submit">Subscribe</button>
+                        </div>
+                    </form>
+                {% endif %}
             </div>
         </div>
     </div>
 </section>
+
+<script>
+    const container = document.getElementById('newsletterContainer');
+    const messageBox = document.getElementById('newsletterMessage');
+
+    // Extract CSRF token once (will be refreshed if necessary)
+    function getCSRFToken() {
+        return document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+    }
+
+    // Render Subscribe Form markup for given email (empty string if guest)
+    function renderSubscribeForm(email = '') {
+        const csrfToken = getCSRFToken();
+        return `
+            <h3 class="mb-4">Subscribe to Our Newsletter</h3>
+            <p class="text-muted mb-4">Get updates about new products and special offers!</p>
+            <form id="subscribeForm" action="{% url 'core:newsletter_subscribe' %}" method="POST">
+                <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
+                <div class="input-group">
+                    <input type="email" class="form-control" value="${email}" ${email ? 'disabled' : 'name="email" required'} />
+                    ${email ? `<input type="hidden" name="email" value="${email}">` : ''}
+                    <button class="btn btn-dark" type="submit">Subscribe</button>
+                </div>
+            </form>
+        `;
+    }
+
+    // Render Unsubscribe Form markup for given email
+    function renderUnsubscribeForm(email) {
+        const csrfToken = getCSRFToken();
+        return `
+            <h3 class="mb-4">Subscribe to Our Newsletter</h3>
+            <p class="text-muted mb-4">Get updates about new products and special offers!</p>
+            <form id="unsubscribeForm">
+                {% csrf_token %}
+                <input type="hidden" name="email" value="${email}">
+                <button type="button" class="btn btn-outline-danger" id="unsubscribeBtn">Unsubscribe</button>
+            </form>
+        `;
+    }
+
+    // Bind subscribe form submit event
+    function bindSubscribe() {
+        const subscribeForm = document.getElementById('subscribeForm');
+        if (!subscribeForm) return;
+
+        const submitBtn = subscribeForm.querySelector('button[type="submit"]');
+        const input = subscribeForm.querySelector('input[name="email"]') || subscribeForm.querySelector('input[disabled]');
+
+        subscribeForm.addEventListener('submit', async e => {
+            e.preventDefault();
+
+            const email = input?.value || '';
+            submitBtn.disabled = true;
+            submitBtn.innerText = 'Subscribing...';
+
+            const res = await fetch(subscribeForm.action, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken(),
+                },
+                body: JSON.stringify({ email }),
+            });
+
+            const data = await res.json();
+
+            messageBox.innerHTML = `
+                <div class="alert ${data.success ? 'alert-success' : 'alert-danger'} alert-dismissible fade show" role="alert">
+                    ${data.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+
+            submitBtn.disabled = false;
+            submitBtn.innerText = 'Subscribe';
+
+            if (data.success) {
+                // Replace form with Unsubscribe form
+                container.innerHTML = renderUnsubscribeForm(email);
+                bindUnsubscribe();
+            }
+        });
+    }
+
+    // Bind unsubscribe button click event
+    function bindUnsubscribe() {
+        const unsubscribeBtn = document.getElementById('unsubscribeBtn');
+        if (!unsubscribeBtn) return;
+
+        unsubscribeBtn.addEventListener('click', async () => {
+            const email = document.querySelector('#unsubscribeForm input[name="email"]')?.value;
+            if (!email) {
+                messageBox.innerHTML = `
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        Email not found. Please reload the page.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                `;
+                return;
+            }
+
+            unsubscribeBtn.disabled = true;
+            unsubscribeBtn.innerText = 'Unsubscribing...';
+
+            const res = await fetch("{% url 'core:newsletter_unsubscribe' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken(),
+                },
+                body: JSON.stringify({ email }),
+            });
+
+            const data = await res.json();
+
+            messageBox.innerHTML = `
+                <div class="alert ${data.success ? 'alert-success' : 'alert-danger'} alert-dismissible fade show" role="alert">
+                    ${data.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+
+            unsubscribeBtn.disabled = false;
+            unsubscribeBtn.innerText = 'Unsubscribe';
+
+            if (data.success) {
+                // Replace form with Subscribe form
+                container.innerHTML = renderSubscribeForm(email);
+                bindSubscribe();
+            }
+        });
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        if (document.getElementById('subscribeForm')) {
+            bindSubscribe();
+        } else if (document.getElementById('unsubscribeBtn')) {
+            bindUnsubscribe();
+        }
+    });
+</script>
+
 {% endblock %} 
