@@ -11,11 +11,14 @@
             <!-- Cart Items -->
             <div class="col-lg-8">
                 {% for item in cart_items %}
-                    <div class="cart-item">
+                    <div class="cart-item py-3 border-bottom">
                         <div class="row align-items-center">
+                            <!-- Product Image -->
                             <div class="col-md-3">
                                 <img src="{{ item.product.image.url }}" class="img-fluid rounded" alt="{{ item.product.name }}">
                             </div>
+
+                            <!-- Product Info and Actions -->
                             <div class="col-md-9">
                                 <div class="d-flex justify-content-between align-items-start mb-2">
                                     <h5 class="mb-0">
@@ -29,18 +32,29 @@
                                         <button type="submit" class="btn-close" aria-label="Remove"></button>
                                     </form>
                                 </div>
+
                                 {% if item.size %}
                                     <p class="text-muted mb-2">Size: {{ item.size }}</p>
                                 {% endif %}
+
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <div class="d-flex align-items-center">
-                                        <div class="input-group quantity-input me-3">
-                                            <button type="button" class="btn btn-outline-dark" onclick="updateCartQuantity({{ item.product.id }}, '{{ item.size }}', {{ item.quantity|add:'-1' }})">-</button>
-                                            <input type="number" class="form-control text-center" value="{{ item.quantity }}" min="1" max="10" readonly>
-                                            <button type="button" class="btn btn-outline-dark" onclick="updateCartQuantity({{ item.product.id }}, '{{ item.size }}', {{ item.quantity|add:'1' }})">+</button>
+                                    <!-- Quantity and Price -->
+                                    <form action="{% url 'orders:update_cart' %}" method="POST" class="d-flex align-items-center gap-2 mb-0">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="product_id" value="{{ item.product.id }}">
+
+                                        <div class="input-group quantity-input" style="width: 130px;">
+                                            <button type="button" class="btn btn-outline-dark" onclick="changeQuantity(this, -1)">−</button>
+                                            <input type="number" name="quantity" class="form-control text-center quantity-field" value="{{ item.quantity }}" min="1" max="10">
+                                            <button type="button" class="btn btn-outline-dark" onclick="changeQuantity(this, 1)">+</button>
                                         </div>
+
+                                        <button type="submit" class="btn btn-sm btn-dark">Update</button>
+
                                         <span class="text-muted">x ${{ item.product.price }}</span>
-                                    </div>
+                                    </form>
+
+
                                     <span class="fw-bold">${{ item.total }}</span>
                                 </div>
                             </div>
@@ -48,6 +62,7 @@
                     </div>
                 {% endfor %}
             </div>
+
 
             <!-- Order Summary -->
             <div class="col-lg-4">
@@ -120,9 +135,15 @@
 
 {% block extra_js %}
 <script>
-    function updateCartQuantity(productId, size, newQuantity) {
-        if (newQuantity >= 1 && newQuantity <= 10) {
-            updateQuantity(productId, size, newQuantity);
+    function changeQuantity(button, delta) {
+        const input = button.parentElement.querySelector('.quantity-field');
+        let value = parseInt(input.value);
+
+        if (!isNaN(value)) {
+            let newVal = value + delta;
+            if (newVal >= 1 && newVal <= 10) {
+                input.value = newVal;
+            }
         }
     }
 </script>

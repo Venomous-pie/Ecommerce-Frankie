@@ -90,9 +90,14 @@
         <div class="col-lg-3">
             <div class="profile-sidebar">
                 <div class="d-flex align-items-center mb-4 px-4">
-                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width:48px; height:48px; font-size:1.5rem;">
-                        <i class="fa fa-user"></i>
+                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center overflow-hidden" style="width:48px; height:48px;">
+                        {% if user.profile.avatar %}
+                            <img src="{{ user.profile.avatar.url }}" alt="Avatar" style="width:100%; height:100%; object-fit:cover;">
+                        {% else %}
+                            <i class="fa fa-user" style="font-size:1.5rem; color:#6c757d;"></i>
+                        {% endif %}
                     </div>
+
                     <div class="ms-3">
                         <div style="font-weight:600; font-size: 2rem; color:rgb(0, 0, 0); display: flex; align-items: center;">
                             {{ user.username }}
@@ -120,10 +125,9 @@
         <div class="col-lg-9">
             <div class="profile-section">
                 <h4 style="font-weight:600;">My Profile</h4>
-                <div style="color:#888; font-size:1rem; margin-bottom:32px;">✎ edit bio</div>
 
                 <!-- View Mode -->
-                <div id="viewMode" class="row">
+                <div id="viewMode" class="row mt-5">
                     <div class="col-md-8">
                         <div class="profile-info-item">
                             <div class="profile-info-label">Username</div>
@@ -167,13 +171,14 @@
                     <form method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
                         <div class="row">
+                            <!-- Input Fields Left -->
                             <div class="col-md-8">
                                 <div class="mb-3">
                                     <label class="profile-form-label">Username</label>
                                     <input type="text" class="form-control profile-form-input" value="{{ user.username }}" readonly>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="profile-form-label">Name (use for shipping) </label>
+                                    <label class="profile-form-label">Name (use for shipping)</label>
                                     <input type="text" class="form-control profile-form-input" name="name" value="{{ user.get_full_name }}">
                                 </div>
                                 <div class="mb-3">
@@ -192,60 +197,35 @@
                                     <input type="radio" class="profile-form-radio" name="gender" value="female" {% if user.profile.gender == 'female' %}checked{% endif %}> Female
                                     <input type="radio" class="profile-form-radio" name="gender" value="other" {% if user.profile.gender == 'other' %}checked{% endif %}> Other
                                 </div>
-                                <div class="mb-3 row">
-                                    <label class="profile-form-label col-12">Date of birth</label>
-                                    <div class="col-4">
-
-                                    <select class="form-control profile-form-input {% if dob_errors.dob_day %}is-invalid{% endif %}" name="dob_day">
-                                        <option value="">Date</option>
-                                        {% for d in days %}
-                                            <option value="{{ d }}" {% if request.POST.dob_day == d|stringformat:"s" %}selected{% endif %}>{{ d }}</option>
-                                        {% endfor %}
-                                    </select>
-                                    {% if dob_errors.dob_day %}
-                                        <div class="invalid-feedback">{{ dob_errors.dob_day }}</div>
-                                    {% endif %}
-                                </div>
-                                <div class="col-4">
-                                    <select class="form-control profile-form-input {% if dob_errors.dob_month %}is-invalid{% endif %}" name="dob_month">
-                                        <option value="">Month</option>
-                                        {% for m in months %}
-                                            <option value="{{ m }}" {% if request.POST.dob_month == m|stringformat:"s" %}selected{% endif %}>{{ m }}</option>
-                                        {% endfor %}
-                                    </select>
-                                    {% if dob_errors.dob_month %}
-                                        <div class="invalid-feedback">{{ dob_errors.dob_month }}</div>
-                                    {% endif %}
-                                </div>
-                                <div class="col-4">
-                                    <select class="form-control profile-form-input {% if dob_errors.dob_year %}is-invalid{% endif %}" name="dob_year">
-                                        <option value="">Year</option>
-                                        {% for y in years %}
-                                            <option value="{{ y }}" {% if request.POST.dob_year == y|stringformat:"s" %}selected{% endif %}>{{ y }}</option>
-                                        {% endfor %}
-                                    </select>
-                                    {% if dob_errors.dob_year %}
-                                        <div class="invalid-feedback">{{ dob_errors.dob_year }}</div>
-                                    {% endif %}
-                                </div>
-
+                                <div class="mb-3">
+                                    <label class="profile-form-label">Date of Birth</label>
+                                    <input 
+                                        type="date" 
+                                        class="form-control profile-form-input" 
+                                        name="date_of_birth"
+                                        value="{{ user.profile.date_of_birth|date:'Y-m-d' }}"
+                                        max="{{ today|date:'Y-m-d' }}"
+                                    >
                                 </div>
                                 <button type="submit" class="btn btn-primary px-5 mt-2">Save</button>
                             </div>
+
+                            <!-- Image Upload Right -->
                             <div class="col-md-4 d-flex flex-column align-items-center justify-content-start">
                                 <div class="profile-avatar mb-2" style="width: 200px; height: 200px;">
                                     {% if user.profile.avatar %}
                                         <img src="{{ user.profile.avatar.url }}" alt="Profile Avatar" style="width: 200px; height: 200px;">
                                     {% else %}
-                                        <i class="fa fa-user"></i>
+                                        <i class="fa fa-user fa-5x text-muted"></i>
                                     {% endif %}
                                 </div>
-                                <input type="file" name="avatar" class="form-control profile-upload-btn" style="max-width:200px;" accept="image/jpeg, image/png">
-                                <div style="font-size:0.95rem; color:#888;">File size: maximum 1 MB<br>File extension: .JPEG, .PNG</div>
+                                <input type="file" name="avatar" class="form-control profile-upload-btn mb-2" style="max-width:200px;" accept="image/jpeg, image/png">
+                                <div style="font-size:0.95rem; color:#888;">File size: max 1 MB<br>Allowed: .JPEG, .PNG</div>
                             </div>
                         </div>
                     </form>
                 </div>
+
 
                 <!-- Success Message -->
                 {% if messages %}
@@ -287,38 +267,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
-document.addEventListener('DOMContentLoaded', function () {
-    const form = document.querySelector('#editMode form');
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.querySelector('#editMode form');
 
-    form.addEventListener('submit', function (event) {
-        const day = form.querySelector('select[name="dob_day"]');
-        const month = form.querySelector('select[name="dob_month"]');
-        const year = form.querySelector('select[name="dob_year"]');
-
-        let isValid = true;
-
-        [day, month, year].forEach(select => {
-            const feedback = select.nextElementSibling;
-            if (select.value === "" || select.value === "Date" || select.value === "Month" || select.value === "Year") {
-                select.classList.add('is-invalid');
-                if (!feedback || !feedback.classList.contains('invalid-feedback')) {
-                    const error = document.createElement('div');
-                    error.classList.add('invalid-feedback');
-                    error.innerText = "Please fill in this field";
-                    select.parentElement.appendChild(error);
-                }
-                isValid = false;
-            } else {
-                select.classList.remove('is-invalid');
-                const feedback = select.parentElement.querySelector('.invalid-feedback');
-                if (feedback) feedback.remove();
-            }
-        });
-
-        if (!isValid) {
-            event.preventDefault(); // block form submission
-        }
     });
-});
 </script>
 {% endblock %}

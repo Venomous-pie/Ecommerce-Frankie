@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from products.models import Product
 from decimal import Decimal
 from django.utils import timezone
+from users.models import Address
 
 
 class PromoCode(models.Model):
@@ -40,6 +41,8 @@ class PromoCode(models.Model):
 
 class Cart(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    promo_code = models.ForeignKey(PromoCode, null=True, blank=True, on_delete=models.SET_NULL)
+    discount_amount = models.DecimalField(max_digits=8, decimal_places=2, default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -47,12 +50,25 @@ class Cart(models.Model):
         return f"{self.user.username}'s cart"
 
     @property
-    def total(self):
+    def total_before_discount(self):
         return sum(item.total for item in self.items.all())
+
+    @property
+    def shipping_cost(self):
+        return Decimal('0.00') if self.total_before_discount >= 100 else Decimal('10.00')
+
+    @property
+    def total_after_discount(self):
+        return max(self.total_before_discount + self.shipping_cost - self.discount_amount, 0)
 
     @property
     def total_items(self):
         return sum(item.quantity for item in self.items.all())
+
+    @property
+    def total(self):  # Optional: use this for subtotal only
+        return self.total_before_discount
+
 
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, related_name='items', on_delete=models.CASCADE)
@@ -82,29 +98,36 @@ class Order(models.Model):
         ('cancelled', 'Cancelled'),
     ]
 
+    PAYMENT_METHOD_CHOICES = [
+        ('cod', 'Cash on Delivery'),
+        ('card', 'Credit/Debit Card'),
+        ('paypal', 'PayPal'),
+        ('bank', 'Bank Transfer'),
+        ('gcash', 'GCash'),
+    ]
+    
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     shipping_address = models.TextField()
     phone = models.CharField(max_length=20)
     email = models.EmailField()
     subtotal = models.DecimalField(max_digits=10, decimal_places=2)
+    discount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     shipping_cost = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('10.00'))
     total = models.DecimalField(max_digits=10, decimal_places=2)
     tracking_number = models.CharField(max_length=100, blank=True)
     notes = models.TextField(blank=True)
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, default='cod')  # <-- NEW
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    promo_code = models.ForeignKey(PromoCode, null=True, blank=True, on_delete=models.SET_NULL)
+    address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True, blank=True)
 
     class Meta:
         ordering = ['-created_at']
 
     def __str__(self):
         return f"Order #{self.id} by {self.user.username}"
-
-    def save(self, *args, **kwargs):
-        if not self.total:
-            self.total = self.subtotal + self.shipping_cost
-        super().save(*args, **kwargs)
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)

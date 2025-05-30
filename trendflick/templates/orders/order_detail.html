@@ -2,48 +2,124 @@
 {% block title %}Order #{{ order.id }} - TrendFlick{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <h1 class="mb-4">Order #{{ order.id }}</h1>
+<div class="container my-5">
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <h2 class="card-title mb-4">Order Summary</h2>
 
-    <div class="mb-3">
-        <p><strong>Status:</strong> {{ order.status|capfirst }}</p>
-        <p><strong>Date:</strong> {{ order.created_at|date:"M d, Y H:i" }}</p>
-        <p><strong>Total:</strong> ${{ order.total }}</p>
-        <p><strong>Shipping Address:</strong> {{ order.shipping_address }}</p>
-        <p><strong>Phone:</strong> {{ order.phone }}</p>
-        <p><strong>Email:</strong> {{ order.email }}</p>
-        {% if order.tracking_number %}
-            <p><strong>Tracking #:</strong> {{ order.tracking_number }}</p>
-        {% endif %}
-        {% if order.notes %}
-            <p><strong>Notes:</strong> {{ order.notes }}</p>
-        {% endif %}
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Order ID:</strong> #{{ order.id }}</p>
+                    <p><strong>Status:</strong> {{ order.status|capfirst }}</p>
+                    <p><strong>Placed on:</strong> {{ order.created_at|date:"M d, Y H:i" }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Order ID:</strong> #{{ order.id }}</p>
+                    <p><strong>Status:</strong> {{ order.status|capfirst }}</p>
+                    <p><strong>Payment Method:</strong>
+                        {% if order.payment_method == 'cod' %}
+                            Cash on Delivery
+                        {% elif order.payment_method == 'card' %}
+                            Credit/Debit Card
+                        {% elif order.payment_method == 'paypal' %}
+                            PayPal
+                        {% elif order.payment_method == 'bank' %}
+                            Bank Transfer
+                        {% elif order.payment_method == 'gcash' %}
+                            GCash
+                        {% else %}
+                            Unknown
+                        {% endif %}
+                    </p>
+                    <p><strong>Placed on:</strong> {{ order.created_at|date:"M d, Y H:i" }}</p>
+                </div>
+                <div class="row">
+
+                <div class="col-md-6">
+                    <p><strong>Shipping Address:</strong><br>
+                        {% if order.address %}
+                            {{ order.address.full_name }}<br>
+                            {{ order.address.street_address }}<br>
+                            {{ order.address.city }}, {{ order.address.state }} {{ order.address.postal_code }}<br>
+                            {{ order.address.country }}<br>
+                            <strong>Phone:</strong> {{ order.address.phone_number }}
+                        {% else %}
+                            {{ order.shipping_address }}
+                        {% endif %}
+                    </p>
+                    {% if order.tracking_number %}
+                        <p><strong>Tracking #:</strong> {{ order.tracking_number }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if order.notes %}
+                <div class="alert alert-secondary mt-3">
+                    <strong>Notes:</strong> {{ order.notes }}
+                </div>
+            {% endif %}
+        </div>
     </div>
 
-    <h3>Items</h3>
-    <div class="table-responsive">
-        <table class="table table-bordered">
-            <thead class="table-light">
-                <tr>
-                    <th>Product</th>
-                    <th>Size</th>
-                    <th>Quantity</th>
-                    <th>Price</th>
-                    <th>Total</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in order.items.all %}
-                <tr>
-                    <td>{{ item.product_name }}</td>
-                    <td>{{ item.size }}</td>
-                    <td>{{ item.quantity }}</td>
-                    <td>${{ item.product_price }}</td>
-                    <td>${{ item.total }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="card shadow-sm border-0 mt-4">
+        <div class="card-body">
+            <h3 class="card-title mb-3">Ordered Items</h3>
+            <div class="table-responsive">
+            <table class="table table-bordered align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Unit Price</th>
+                        <th>Item Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in order.items.all %}
+                    <tr>
+                        <td>{{ item.product_name }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>${{ item.product_price }}</td>
+                        <td>${{ item.total }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 mt-4">
+        <div class="card-body">
+            <h3 class="card-title mb-3">Payment Summary</h3>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>Subtotal</span>
+                    <span>${{ order.subtotal }}</span>
+                </li>
+
+                {% if order.discount > 0 %}
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Discount
+                            {% if order.promo_code %}
+                                (Promo: <strong>{{ order.promo_code.code }}</strong> -
+                                {{ order.promo_code.discount_percent }}%)
+                            {% endif %}
+                        </span>
+                        <span class="text-success">- ${{ order.discount }}</span>
+                    </li>
+                {% endif %}
+
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>Shipping</span>
+                    <span>${{ order.shipping_cost }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between fw-bold fs-5">
+                    <span>Total</span>
+                    <span>${{ order.total }}</span>
+                </li>
+            </ul>
+        </div>
     </div>
 </div>
 {% endblock %}

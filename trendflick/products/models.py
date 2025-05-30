@@ -25,7 +25,6 @@ class Product(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='products')
 
     image = models.ImageField(upload_to='products/')
-    sizes = models.JSONField(null=True, blank=True, help_text='List of available sizes')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

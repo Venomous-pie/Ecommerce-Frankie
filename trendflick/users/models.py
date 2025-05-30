@@ -8,25 +8,6 @@ import uuid
 import random
 
 
-class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    phone = models.CharField(max_length=20, blank=True)
-    address = models.TextField(blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f"{self.user.username}'s profile"
-
-@receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
-    if created:
-        Profile.objects.create(user=instance)
-
-@receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
-    instance.profile.save()
-
 class Wishlist(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     products = models.ManyToManyField(Product, blank=True)
@@ -38,6 +19,31 @@ class Wishlist(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    phone = models.CharField(max_length=20, blank=True, null=True)
+    gender = models.CharField(max_length=10, choices=[('male', 'Male'), ('female', 'Female'), ('other', 'Other')], blank=True, null=True)
+    date_of_birth = models.DateField(blank=True, null=True)
+    avatar = models.ImageField(upload_to='profile_avatars/', blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user.username}'s profile"
+    
+    def get_default_address(self):
+        return self.user.addresses.filter(is_default=True).first()
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    instance.profile.save()
+
 
 class Address(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='addresses')
@@ -54,28 +60,13 @@ class Address(models.Model):
 
     def __str__(self):
         return f"{self.full_name}'s address in {self.city}"
+    
+    def formatted(self):
+        return f"{self.full_name}\n{self.street_address}\n{self.city}, {self.state} {self.postal_code}\n{self.country}\nPhone: {self.phone_number}"
 
     class Meta:
         verbose_name_plural = "Addresses"
         ordering = ['-is_default', '-created_at']
-
-class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    phone = models.CharField(max_length=20, blank=True, null=True)
-    gender = models.CharField(max_length=10, choices=[('male', 'Male'), ('female', 'Female'), ('other', 'Other')], blank=True, null=True)
-    date_of_birth = models.DateField(blank=True, null=True)
-    avatar = models.ImageField(upload_to='profile_avatars/', blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f"{self.user.username}'s profile"
-
-    def save(self, *args, **kwargs):
-        if not self.pk:  # If this is a new profile
-            super().save(*args, **kwargs)
-        else:
-            super().save(*args, **kwargs)
 
 def generate_unique_numeric_code():
     while True:
@@ -96,3 +87,6 @@ class PasswordResetCode(models.Model):
 
     def is_valid(self):
         return (timezone.now() - self.created_at).total_seconds() < 900  # 15 minutes
+
+    def __str__(self):
+        return f"PasswordResetCode({self.user.username}, {self.code}, Used: {self.is_used})"

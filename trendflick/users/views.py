@@ -13,6 +13,7 @@ from products.models import Product
 from orders.models import Order
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
+from datetime import datetime
 
 
 def login_view(request):
@@ -74,10 +75,51 @@ def register(request):
 
     return render(request, 'users/register.html')
 
+@login_required(login_url='users:login')
 def manage_account(request):
+    user = request.user
+    profile = user.profile
+
+    dob_error = None
+
     if request.method == 'POST':
-        pass
-    return render(request, 'users/manage_account.html')
+        name = request.POST.get('name', '').strip()
+        phone = request.POST.get('phone', '').strip()
+        gender = request.POST.get('gender', '').strip()
+        dob_str = request.POST.get('date_of_birth')
+
+        avatar_file = request.FILES.get('avatar')
+        if avatar_file:
+            profile.avatar = avatar_file
+
+        if dob_str:
+            try:
+                dob = datetime.strptime(dob_str, '%Y-%m-%d').date()
+                profile.date_of_birth = dob
+            except ValueError:
+                dob_error = "Invalid date format."
+        else:
+            profile.date_of_birth = None
+
+        profile.phone = phone
+        profile.gender = gender
+
+        if name:
+            name_parts = name.split(maxsplit=1)
+            user.first_name = name_parts[0]
+            user.last_name = name_parts[1] if len(name_parts) > 1 else ''
+
+        if not dob_error:
+            user.save()
+            profile.save()
+            messages.success(request, "Profile updated successfully.")
+            return redirect('users:manage_account')
+
+    context = {
+        'dob_error': dob_error,
+        'request': request,
+    }
+    return render(request, 'users/manage_account.html', context)
 
 def change_password(request):
     if request.method == 'POST':
@@ -145,7 +187,6 @@ def addresses_view(request):
         'user': request.user
     })
 
-@login_required(login_url='users:login')
 def add_address(request):
     if request.method == 'POST':
         if request.POST.get('is_default'):
@@ -159,11 +200,11 @@ def add_address(request):
             state=request.POST.get('state'),
             postal_code=request.POST.get('postal_code'),
             country=request.POST.get('country'),
-            phone_number=request.POST.get('phone_number'),
+            phone_number=request.user.profile.phone,
             is_default=bool(request.POST.get('is_default'))
         )
         messages.success(request, 'Address added successfully!')
-        return redirect('addresses')
+        return redirect('users:addresses')
     
     return render(request, 'users/add_address.html')
 
@@ -185,7 +226,7 @@ def edit_address(request, address_id):
         address.save()
         
         messages.success(request, 'Address updated successfully!')
-        return redirect('addresses')
+        return redirect('users:addresses')
     
     return render(request, 'users/edit_address.html', {'address': address})
 
@@ -193,7 +234,7 @@ def delete_address(request, address_id):
     address = get_object_or_404(Address, id=address_id, user=request.user)
     address.delete()
     messages.success(request, 'Address deleted successfully!')
-    return redirect('addresses')
+    return redirect('users:addresses')
 
 def set_default_address(request, address_id):
     """Set an address as default."""
@@ -202,7 +243,7 @@ def set_default_address(request, address_id):
     address.is_default = True
     address.save()
     messages.success(request, 'Default address updated successfully!')
-    return redirect('addresses')
+    return redirect('users:addresses')
 
 def is_social_user(user):
     return hasattr(user, 'socialaccount_set') and user.socialaccount_set.exists()
