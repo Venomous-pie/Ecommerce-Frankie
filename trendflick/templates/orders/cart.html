@@ -2,133 +2,149 @@
 
 {% block title %}Shopping Cart - TrendFlick{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Chrome, Safari, Edge, Opera */
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    /* Firefox */
+    input[type=number] {
+        -moz-appearance: textfield;
+    }
+</style>
+{% endblock %}
+
+
 {% block content %}
 <div class="container py-5">
     <h1 class="mb-4">Shopping Cart</h1>
 
     {% if cart_items %}
-        <div class="row">
-            <!-- Cart Items -->
-            <div class="col-lg-8">
-                {% for item in cart_items %}
-                    <div class="cart-item py-3 border-bottom">
-                        <div class="row align-items-center">
-                            <!-- Product Image -->
-                            <div class="col-md-3">
-                                <img src="{{ item.product.image.url }}" class="img-fluid rounded" alt="{{ item.product.name }}">
-                            </div>
-
-                            <!-- Product Info and Actions -->
-                            <div class="col-md-9">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <h5 class="mb-0">
-                                        <a href="{% url 'products:detail' item.product.id %}" class="text-dark text-decoration-none">
-                                            {{ item.product.name }}
-                                        </a>
-                                    </h5>
-                                    <form action="{% url 'orders:remove_from_cart' item.product.id %}" method="POST" style="display:inline;">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="size" value="{{ item.size }}">
-                                        <button type="submit" class="btn-close" aria-label="Remove"></button>
-                                    </form>
-                                </div>
-
-                                {% if item.size %}
-                                    <p class="text-muted mb-2">Size: {{ item.size }}</p>
-                                {% endif %}
-
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <!-- Quantity and Price -->
-                                    <form action="{% url 'orders:update_cart' %}" method="POST" class="d-flex align-items-center gap-2 mb-0">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="product_id" value="{{ item.product.id }}">
-
-                                        <div class="input-group quantity-input" style="width: 130px;">
-                                            <button type="button" class="btn btn-outline-dark" onclick="changeQuantity(this, -1)">−</button>
-                                            <input type="number" name="quantity" class="form-control text-center quantity-field" value="{{ item.quantity }}" min="1" max="10">
-                                            <button type="button" class="btn btn-outline-dark" onclick="changeQuantity(this, 1)">+</button>
-                                        </div>
-
-                                        <button type="submit" class="btn btn-sm btn-dark">Update</button>
-
-                                        <span class="text-muted">x ${{ item.product.price }}</span>
-                                    </form>
-
-
-                                    <span class="fw-bold">${{ item.total }}</span>
-                                </div>
-                            </div>
+    <div class="row">
+        <!-- Cart Items -->
+        <div class="col-lg-8">
+            {% for item in cart_items %}
+            <div class="cart-item py-3 border-bottom">
+                <div class="row align-items-center">
+                    <!-- Product Image -->
+                    <div class="col-md-3">
+                        <div class="ratio ratio-1x1">
+                            <img src="{{ item.product.image.url }}" class="img-fluid rounded object-fit-cover" alt="{{ item.product.name }}">
                         </div>
                     </div>
-                {% endfor %}
-            </div>
 
+                    <!-- Product Info and Actions -->
+                    <div class="col-md-9">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="mb-0">
+                                <a href="{% url 'products:detail' item.product.id %}" class="text-dark text-decoration-none">
+                                    {{ item.product.name }}
+                                </a>
+                            </h5>
+                            <form action="{% url 'orders:remove_from_cart' item.product.id %}" method="POST">
+                                {% csrf_token %}
+                                <input type="hidden" name="size" value="{{ item.size }}">
+                                <button type="submit" class="btn-close" aria-label="Remove"></button>
+                            </form>
+                        </div>
 
-            <!-- Order Summary -->
-            <div class="col-lg-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title mb-4">Order Summary</h5>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Subtotal</span>
-                            <span>${{ subtotal }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Shipping</span>
-                            <span>{% if subtotal >= 100 %}Free{% else %}$10.00{% endif %}</span>
-                        </div>
-                        {% if discount %}
-                            <div class="d-flex justify-content-between mb-2 text-success">
-                                <span>Discount</span>
-                                <span>-${{ discount }}</span>
-                            </div>
-                        {% endif %}
-                        <hr>
-                        <div class="d-flex justify-content-between mb-4">
-                            <span class="fw-bold">Total</span>
-                            <span class="fw-bold">${{ total }}</span>
-                        </div>
-                        
-                        <!-- Promo Code -->
-                        <form method="POST" class="mb-4">
-                            {% csrf_token %}
-                            <div class="input-group">
-                                <input type="text" name="promo_code" class="form-control" placeholder="Promo code" value="{{ promo_code.code|default:'' }}">
-                                <button class="btn btn-outline-dark" type="submit">Apply</button>
-                            </div>
-                        </form>
-
-                        {% if form_submitted %}
-                            {% if promo_code_success %}
-                                <div class="alert alert-success alert-dismissible fade show mt-2" role="alert">
-                                    {{ promo_code_success }}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                </div>
-                            {% elif promo_code_error %}
-                                <div class="alert alert-danger alert-dismissible fade show mt-2" role="alert">
-                                    {{ promo_code_error }}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                </div>
-                            {% endif %}
+                        {% if item.size %}
+                        <p class="text-muted mb-2">Size: {{ item.size }}</p>
                         {% endif %}
 
-                        <a href="{% url 'orders:place_order' %}" class="btn btn-dark w-100">Proceed to Checkout</a>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <!-- Quantity and Price -->
+                            <form action="{% url 'orders:update_cart' %}" method="POST" class="d-flex align-items-center gap-2">
+                                {% csrf_token %}
+                                <input type="hidden" name="product_id" value="{{ item.product.id }}">
+
+                                <div class="input-group" style="width: 130px;">
+                                    <button type="button" class="btn btn-outline-dark" onclick="changeQuantity(this, -1)">−</button>
+                                    <input type="number" name="quantity" class="form-control text-center quantity-field" value="{{ item.quantity }}" min="1" max="10">
+                                    <button type="button" class="btn btn-outline-dark" onclick="changeQuantity(this, 1)">+</button>
+                                </div>
+
+                                <button type="submit" class="btn btn-sm btn-dark">Update</button>
+                                <span class="text-muted">x ₱{{ item.product.price }}</span>
+                            </form>
+
+                            <span class="fw-bold">₱{{ item.total }}</span>
+                        </div>
                     </div>
                 </div>
-
-                <!-- Continue Shopping -->
-                <a href="{% url 'products:all_product' 'all' %}" class="btn btn-outline-dark w-100 mt-3">
-                    <i class="fas fa-arrow-left me-2"></i>Continue Shopping
-                </a>
             </div>
+            {% endfor %}
         </div>
+
+        <!-- Order Summary -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">Order Summary</h5>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal</span>
+                        <span>₱{{ subtotal }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Shipping</span>
+                        <span>{% if subtotal >= 100 %}Free{% else %}₱10.00{% endif %}</span>
+                    </div>
+                    {% if discount %}
+                    <div class="d-flex justify-content-between mb-2 text-success">
+                        <span>Discount</span>
+                        <span>-₱{{ discount }}</span>
+                    </div>
+                    {% endif %}
+                    <hr>
+                    <div class="d-flex justify-content-between mb-4">
+                        <span class="fw-bold">Total</span>
+                        <span class="fw-bold">₱{{ total }}</span>
+                    </div>
+
+                    <!-- Promo Code -->
+                    <form method="POST" class="mb-4">
+                        {% csrf_token %}
+                        <div class="input-group">
+                            <input type="text" name="promo_code" class="form-control" placeholder="Promo code" value="{{ promo_code.code|default:'' }}">
+                            <button class="btn btn-outline-dark" type="submit">Apply</button>
+                        </div>
+                    </form>
+
+                    {% if form_submitted %}
+                        {% if promo_code_success %}
+                        <div class="alert alert-success alert-dismissible fade show mt-2" role="alert">
+                            {{ promo_code_success }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        {% elif promo_code_error %}
+                        <div class="alert alert-danger alert-dismissible fade show mt-2" role="alert">
+                            {{ promo_code_error }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+
+                    <a href="{% url 'orders:place_order' %}" class="btn btn-dark w-100">Proceed to Checkout</a>
+                </div>
+            </div>
+
+            <!-- Continue Shopping -->
+            <a href="{% url 'products:all_product' 'all' %}" class="btn btn-outline-dark w-100 mt-3">
+                <i class="fas fa-arrow-left me-2"></i>Continue Shopping
+            </a>
+        </div>
+    </div>
     {% else %}
-        <div class="text-center py-5">
-            <i class="fas fa-shopping-cart fa-4x text-muted mb-4"></i>
-            <h3>Your cart is empty</h3>
-            <p class="text-muted mb-4">Looks like you haven't added anything to your cart yet.</p>
-            <a href="{% url 'products:all_product' 'all' %}" class="btn btn-dark">Start Shopping</a>
-        </div>
+    <div class="text-center py-5">
+        <i class="fas fa-shopping-cart fa-4x text-muted mb-4"></i>
+        <h3>Your cart is empty</h3>
+        <p class="text-muted mb-4">Looks like you haven't added anything to your cart yet.</p>
+        <a href="{% url 'products:all_product' 'all' %}" class="btn btn-dark">Start Shopping</a>
+    </div>
     {% endif %}
 </div>
 {% endblock %}
@@ -138,7 +154,6 @@
     function changeQuantity(button, delta) {
         const input = button.parentElement.querySelector('.quantity-field');
         let value = parseInt(input.value);
-
         if (!isNaN(value)) {
             let newVal = value + delta;
             if (newVal >= 1 && newVal <= 10) {
@@ -147,4 +162,4 @@
         }
     }
 </script>
-{% endblock %} 
+{% endblock %}

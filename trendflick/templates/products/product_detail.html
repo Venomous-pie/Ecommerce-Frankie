@@ -22,9 +22,9 @@
         <div class="col-lg-6">
             <h1 class="mb-3">{{ product.name }}</h1>
             <div class="mb-3">
-                <span class="h3">${{ product.price }}</span>
+                <span class="h3">₱{{ product.price }}</span>
                 {% if product.compare_at_price %}
-                    <span class="text-muted text-decoration-line-through ms-2">${{ product.compare_at_price }}</span>
+                    <span class="text-muted text-decoration-line-through ms-2">₱{{ product.compare_at_price }}</span>
                     <span class="badge bg-danger ms-2">Save {{ product.discount_percentage }}%</span>
                 {% endif %}
             </div>
@@ -70,7 +70,7 @@
                             <i class="fas fa-truck text-primary me-2"></i>
                             <div>
                                 <h6 class="mb-0">Free Shipping</h6>
-                                <small class="text-muted">On orders over $100</small>
+                                <small class="text-muted">On orders over ₱100</small>
                             </div>
                         </div>
                     </div>
@@ -104,7 +104,7 @@
                 </div>
                 <div class="tab-pane fade" id="shipping" role="tabpanel">
                     <h5>Shipping Information</h5>
-                    <p>We offer free standard shipping on all orders over $100. For orders under $100, shipping costs are calculated at checkout based on your location.</p>
+                    <p>We offer free standard shipping on all orders over ₱100. For orders under ₱100, shipping costs are calculated at checkout based on your location.</p>
                     
                     <h5 class="mt-4">Return Policy</h5>
                     <p>We want you to be completely satisfied with your purchase. If you're not happy with your order, you can return it within 30 days for a full refund.</p>
@@ -120,11 +120,11 @@
                 <div class="col-6 col-md-3 mb-4">
                     <div class="card h-100 text-center">
                         <a href="{% url 'products:detail' product.id %}">
-                            <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                            <img src="{{ product.image.url }}" class="card-img-top square-img" alt="{{ product.name }}">
                         </a>
                         <div class="card-body">
                             <h6 class="card-title">{{ product.name|truncatechars:25 }}</h6>
-                            <p class="text-muted">${{ product.price }}</p>
+                            <p class="text-muted">₱{{ product.price }}</p>
                         </div>
                     </div>
                 </div>
@@ -159,4 +159,25 @@
     });
 
 </script>
-{% endblock %} 
+
+<style>
+.square-img {
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    display: block;
+}
+
+/* Make main product image square as well */
+.product-images img {
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    display: block;
+}
+</style>
+{% endblock %}

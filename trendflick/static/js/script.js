@@ -175,10 +175,10 @@ function updateQuantity(productId, size, newQuantity) {
 // Show notification
 function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
-    notification.className = `alert alert-${type} position-fixed`;
+    notification.className = `alert alert-₱{type} position-fixed`;
     notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
     notification.innerHTML = `
-        ${message}
+        ₱{message}
         <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
     `;
     
@@ -218,7 +218,7 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             const query = document.getElementById('searchInput').value.trim();
             if (query) {
-                window.location.href = `/search/?q=${encodeURIComponent(query)}`;
+                window.location.href = `/search/?q=₱{encodeURIComponent(query)}`;
             }
         });
     }

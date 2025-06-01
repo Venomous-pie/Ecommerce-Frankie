@@ -79,8 +79,8 @@
                     <tr>
                         <td>{{ item.product_name }}</td>
                         <td>{{ item.quantity }}</td>
-                        <td>${{ item.product_price }}</td>
-                        <td>${{ item.total }}</td>
+                        <td>₱{{ item.product_price }}</td>
+                        <td>₱{{ item.total }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -95,7 +95,7 @@
             <ul class="list-group list-group-flush">
                 <li class="list-group-item d-flex justify-content-between">
                     <span>Subtotal</span>
-                    <span>${{ order.subtotal }}</span>
+                    <span>₱{{ order.subtotal }}</span>
                 </li>
 
                 {% if order.discount > 0 %}
@@ -106,17 +106,17 @@
                                 {{ order.promo_code.discount_percent }}%)
                             {% endif %}
                         </span>
-                        <span class="text-success">- ${{ order.discount }}</span>
+                        <span class="text-success">- ₱{{ order.discount }}</span>
                     </li>
                 {% endif %}
 
                 <li class="list-group-item d-flex justify-content-between">
                     <span>Shipping</span>
-                    <span>${{ order.shipping_cost }}</span>
+                    <span>₱{{ order.shipping_cost }}</span>
                 </li>
                 <li class="list-group-item d-flex justify-content-between fw-bold fs-5">
                     <span>Total</span>
-                    <span>${{ order.total }}</span>
+                    <span>₱{{ order.total }}</span>
                 </li>
             </ul>
         </div>
