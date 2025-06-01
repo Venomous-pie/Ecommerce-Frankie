@@ -51,7 +51,7 @@ def cart(request):
                     request.session['promo_code_id'] = promo_code_obj.id
                     request.session['discount'] = str(discount)
 
-                    promo_code_success = f'Promo code "{promo_code_obj.code}" applied! You saved ${discount:.2f}.'
+                    promo_code_success = f'Promo code "{promo_code_obj.code}" applied! You saved ₱{discount:.2f}.'
 
             except PromoCode.DoesNotExist:
                 promo_code_error = "Invalid or expired promo code."

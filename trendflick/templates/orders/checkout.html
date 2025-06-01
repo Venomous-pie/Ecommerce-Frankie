@@ -115,28 +115,28 @@
                     {% for item in cart_items %}
                         <div class="d-flex justify-content-between">
                             <span>{{ item.product.name }}{% if item.size %} ({{ item.size }}){% endif %} × {{ item.quantity }}</span>
-                            <span>${{ item.total }}</span>
+                            <span>₱{{ item.total }}</span>
                         </div>
                     {% endfor %}
                     <hr>
                     <div class="d-flex justify-content-between mb-2">
                         <span>Subtotal</span>
-                        <span>${{ subtotal }}</span>
+                        <span>₱{{ subtotal }}</span>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
                         <span>Shipping</span>
-                        <span>{% if subtotal >= 100 %}Free{% else %}$10.00{% endif %}</span>
+                        <span>{% if subtotal >= 100 %}Free{% else %}₱10.00{% endif %}</span>
                     </div>
                     {% if discount %}
                         <div class="d-flex justify-content-between mb-2 text-success">
                             <span>Discount</span>
-                            <span>-${{ discount }}</span>
+                            <span>-₱{{ discount }}</span>
                         </div>
                     {% endif %}
                     <hr>
                     <div class="d-flex justify-content-between fw-bold mb-3">
                         <span>Total</span>
-                        <span>${{ total }}</span>
+                        <span>₱{{ total }}</span>
                     </div>
                 </div>
             </div>

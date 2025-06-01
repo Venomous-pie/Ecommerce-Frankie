@@ -95,10 +95,10 @@
                                     <h5 class="card-title">{{ product.name }}</h5>
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
-                                            <span class="fw-bold">${{ product.price }}</span>
+                                            <span class="fw-bold">₱{{ product.price }}</span>
                                             {% if product.compare_at_price %}
                                                 <small class="text-muted text-decoration-line-through ms-2">
-                                                    ${{ product.compare_at_price }}
+                                                    ₱{{ product.compare_at_price }}
                                                 </small>
                                             {% endif %}
                                         </div>
