@@ -76,7 +76,7 @@ def all_product(request, category):
     min_price = request.GET.get('min_price')
     max_price = request.GET.get('max_price')
     sort = request.GET.get('sort', 'relevance')
-
+    categories = Category.objects.all()[:4]
     # Get products based on category
     if category != 'all':
         category_obj = get_object_or_404(Category, slug=category)
@@ -137,6 +137,7 @@ def all_product(request, category):
         product.in_wishlist = product.id in wishlist_product_ids
 
     context = {
+        'categories': categories,
         'category': category_obj,
         'products': products_page,
         'query': query,
@@ -145,6 +146,7 @@ def all_product(request, category):
     return render(request, 'products/all-products.html', context)
 
 def detail(request, product_id):
+    categories = Category.objects.all()[:4]
     product = get_object_or_404(Product, id=product_id)
     category = product.category
     related_products = Product.objects.filter(category=category).exclude(id=product_id)[:4]
@@ -169,6 +171,7 @@ def detail(request, product_id):
     product.in_cart = product.id in cart_product_ids
 
     context = {
+        'categories': categories,
         'product': product,
         'related_products': related_products,
     }
@@ -211,6 +214,7 @@ def search_products(request):
     min_price = request.GET.get('min_price')
     max_price = request.GET.get('max_price')
     sort = request.GET.get('sort', 'relevance')
+    categories = Category.objects.all()[:4]
 
     products = Product.objects.all()
 
@@ -243,6 +247,7 @@ def search_products(request):
     products_page = paginator.get_page(page_number)
 
     context = {
+        'categories': categories,
         'products': products_page,
         'query': query,
         'current_sort': sort,

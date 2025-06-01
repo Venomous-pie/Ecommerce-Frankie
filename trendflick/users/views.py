@@ -15,11 +15,14 @@ from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from datetime import datetime
 from django.contrib.auth import update_session_auth_hash
+from products.models import Category
 
 
 def login_view(request):
+    categories = Category.objects.all()[:4]
+
     if request.user.is_authenticated:
-        return render(request, 'home.html')
+        return redirect('core:home')
 
     if request.method == 'POST':
         username_or_email = request.POST.get('username')
@@ -32,7 +35,7 @@ def login_view(request):
                 username = user_obj.username
             except User.DoesNotExist:
                 messages.error(request, 'Invalid email or password')
-                return render(request, 'users/login.html')
+                return render(request, 'users/login.html', {'categories': categories})
         else:
             username = username_or_email
 
@@ -40,17 +43,19 @@ def login_view(request):
 
         if user is not None:
             login(request, user)
-            return render(request, 'home.html')
+            return redirect('core:home')
         else:
             messages.error(request, 'Invalid username or password')
 
-    return render(request, 'users/login.html')
+    return render(request, 'users/login.html', {'categories': categories})
 
 def logout_view(request):
     logout(request)
-    return render(request, 'home.html')
+    return redirect('core:home')
 
 def register(request):
+    categories = Category.objects.all()[:4]
+
     if request.method == 'POST':
         username = request.POST.get('username')
         email = request.POST.get('email')
@@ -74,12 +79,13 @@ def register(request):
             messages.success(request, 'Account created successfully. Please log in.')
             return redirect('users:login')
 
-    return render(request, 'users/register.html')
+    return render(request, 'users/register.html', {'categories': categories})
 
 @login_required(login_url='users:login')
 def manage_account(request):
     user = request.user
     profile = user.profile
+    categories = Category.objects.all()[:4]
 
     dob_error = None
 
@@ -119,10 +125,14 @@ def manage_account(request):
     context = {
         'dob_error': dob_error,
         'request': request,
+        'categories': categories,
     }
     return render(request, 'users/manage_account.html', context)
 
 def change_password(request):
+    categories = Category.objects.all()[:4]
+
+    context = {'categories': categories}
     if request.method == 'POST':
         username = request.POST.get('username')
         email = request.POST.get('email')
@@ -143,10 +153,14 @@ def change_password(request):
         user.save()
         messages.success(request, 'Account details updated successfully.')
         return redirect('users:login')
-    return render(request, 'users/change_password.html') 
+    return render(request, 'users/change_password.html', context) 
 
 @login_required(login_url='users:login')
 def update_password(request):
+    categories = Category.objects.all()[:4]
+
+    context = {'categories': categories}
+
     if request.method == 'POST':
         current_password = request.POST.get('current_password')
         password = request.POST.get('new_password')
@@ -155,26 +169,29 @@ def update_password(request):
 
         if not user.check_password(current_password):
             messages.error(request, "Current password is incorrect.")
-            return render(request, 'users/change_password.html')
+            return render(request, 'users/change_password.html', context)
         else:
             user.set_password(password)
             user.save()
             update_session_auth_hash(request, user)
             messages.success(request, "Password updated successfully.")
             return redirect('users:manage_account')
-        
-    return render(request, 'users/change_password.html')
+    
+    return render(request, 'users/change_password.html', context)
 
 @login_required(login_url='users:login')
 def orders(request):
+    categories = Category.objects.all()[:4]
     orders = Order.objects.filter(user=request.user).order_by('-created_at')
-    return render(request, 'orders/orders.html', {'orders': orders})
+    return render(request, 'orders/orders.html', {'orders': orders, 'categories': categories,})
 
 @login_required(login_url='users:login')
 def wishlist(request):
+    categories = Category.objects.all()[:4]
     wishlist = Wishlist.objects.get_or_create(user=request.user)[0]
     context = {
-        'wishlist_items': wishlist.products.all()
+        'wishlist_items': wishlist.products.all(), 
+        'categories': categories,
     }
     return render(request, 'orders/wishlist.html', context)
 
@@ -208,13 +225,17 @@ def clear_wishlist(request):
     return redirect('users:wishlist')
 
 def addresses_view(request):
+    categories = Category.objects.all()[:4]
     addresses = Address.objects.filter(user=request.user)
     return render(request, 'users/addresses.html', {
         'addresses': addresses,
-        'user': request.user
+        'user': request.user,
+        'categories': categories,
     })
 
 def add_address(request):
+    categories = Category.objects.all()[:4]
+
     if request.method == 'POST':
         if request.POST.get('is_default'):
             Address.objects.filter(user=request.user, is_default=True).update(is_default=False)
@@ -233,10 +254,11 @@ def add_address(request):
         messages.success(request, 'Address added successfully!')
         return redirect('users:addresses')
     
-    return render(request, 'users/add_address.html')
+    return render(request, 'users/add_address.html', {'categories': categories})
 
 def edit_address(request, address_id):
     address = get_object_or_404(Address, id=address_id, user=request.user)
+    categories = Category.objects.all()[:4]
     
     if request.method == 'POST':
         if request.POST.get('is_default'):
@@ -255,7 +277,7 @@ def edit_address(request, address_id):
         messages.success(request, 'Address updated successfully!')
         return redirect('users:addresses')
     
-    return render(request, 'users/edit_address.html', {'address': address})
+    return render(request, 'users/edit_address.html', {'address': address, 'categories': categories,})
 
 def delete_address(request, address_id):
     address = get_object_or_404(Address, id=address_id, user=request.user)

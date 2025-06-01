@@ -543,12 +543,12 @@
                             </a>
                         </li>
                         <li class="mb-2">
-                            <a href="{% url 'core:faq' %}">
+                            <a href="#">
                                 <i class="fas fa-chevron-right me-2" style="font-size: 10px;"></i>FAQ
                             </a>
                         </li>
                         <li class="mb-2">
-                            <a href="{% url 'core:privacy' %}">
+                            <a href="#">
                                 <i class="fas fa-chevron-right me-2" style="font-size: 10px;"></i>Privacy Policy
                             </a>
                         </li>
@@ -558,26 +558,13 @@
                 <div class="col-lg-2 col-md-6 mb-4 mb-lg-0">
                     <h6 class="mb-4">Categories</h6>
                     <ul class="footer-links">
+                        {% for category in categories|slice:":4" %}
                         <li class="mb-2">
-                            <a href="{% url 'products:all_product' 'clothes' %}">
-                                <i class="fas fa-chevron-right me-2" style="font-size: 10px;"></i>Clothes
+                            <a href="{% url 'products:all_product' category.slug %}">
+                                <i class="fas fa-chevron-right me-2" style="font-size: 10px;"></i>{{ category.name }}
                             </a>
                         </li>
-                        <li class="mb-2">
-                            <a href="{% url 'products:all_product' 'shoes' %}">
-                                <i class="fas fa-chevron-right me-2" style="font-size: 10px;"></i>Shoes
-                            </a>
-                        </li>
-                        <li class="mb-2">
-                            <a href="{% url 'products:all_product' 'accessories' %}">
-                                <i class="fas fa-chevron-right me-2" style="font-size: 10px;"></i>Accessories
-                            </a>
-                        </li>
-                        <li class="mb-2">
-                            <a href="{% url 'products:all_product' 'sale' %}">
-                                <i class="fas fa-chevron-right me-2" style="font-size: 10px;"></i>Sale
-                            </a>
-                        </li>
+                        {% endfor %}
                     </ul>
                 </div>
                 

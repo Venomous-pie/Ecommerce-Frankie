@@ -28,10 +28,8 @@ def home(request):
     })
 
 def about(request):
-    return render(request, 'core/about.html')
-
-def about(request):
-    return render(request, 'core/about.html')
+    categories = Category.objects.all()[:4]
+    return render(request, 'core/about.html', {'categories': categories})
 
 def faq(request):
     return render(request, 'core/faq.html')

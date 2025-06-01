@@ -6,6 +6,7 @@ from products.models import Product
 from .models import *
 from django.utils import timezone
 from decimal import Decimal
+from products.models import Category
 
 
 from decimal import Decimal
@@ -14,6 +15,7 @@ from decimal import Decimal
 def cart(request):
     cart, _ = Cart.objects.get_or_create(user=request.user)
     cart_items = cart.items.all()
+    categories = Category.objects.all()[:4]
 
     subtotal = sum(item.product.price * item.quantity for item in cart_items)
     shipping = Decimal('0.00') if subtotal >= 100 else Decimal('10.00')
@@ -73,6 +75,7 @@ def cart(request):
         total = Decimal('0.00')
 
     context = {
+        'categories': categories,
         'cart_items': cart_items,
         'subtotal': subtotal,
         'shipping': shipping,
@@ -159,8 +162,10 @@ def checkout_view(request):
     total = subtotal + shipping_cost - discount
     if total < 0:
         total = Decimal('0.00')
+    categories = Category.objects.all()[:4]
 
     context = {
+        'categories': categories,
         'cart': cart,
         'cart_items': cart.items.all(),
         'subtotal': subtotal,
@@ -262,10 +267,12 @@ def place_order_view(request):
 
 @login_required(login_url='users:login')
 def order_success_view(request, order_id):
+    categories = Category.objects.all()[:4]
     order = Order.objects.get(id=order_id, user=request.user)
-    return render(request, 'orders/order-success.html', {'order': order})
+    return render(request, 'orders/order-success.html', {'order': order, 'categories': categories,})
 
 @login_required(login_url='users:login')
 def order_detail(request, order_id):
+    categories = Category.objects.all()[:4]
     order = get_object_or_404(Order, id=order_id, user=request.user)
-    return render(request, 'orders/order_detail.html', {'order': order})
+    return render(request, 'orders/order_detail.html', {'order': order, 'categories': categories,})
