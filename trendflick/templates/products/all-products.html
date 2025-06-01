@@ -107,29 +107,46 @@
                                     <h5 class="card-title">{{ product.name }}</h5>
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
-                                            <span class="fw-bold">₱{{ product.price }}</span>
+                                            <span class="fw-bold">${{ product.price }}</span>
                                             {% if product.compare_at_price %}
                                                 <small class="text-muted text-decoration-line-through ms-2">
-                                                    ₱{{ product.compare_at_price }}
+                                                    ${{ product.compare_at_price }}
                                                 </small>
                                             {% endif %}
                                         </div>
-
+                                    </div>
+                                    <div class="d-flex gap-2 mt-3">
+                                        <!-- Add to Cart Button -->
                                         {% if user.is_authenticated %}
                                             {% if product.in_cart %}
-                                                <button class="btn btn-success btn-sm" disabled>In Cart</button>
+                                                <button class="btn btn-success btn-sm flex-fill" disabled>In Cart</button>
                                             {% else %}
-                                                <form method="post" action="{% url 'products:add_to_cart' product.id %}">
+                                                <form method="post" action="{% url 'products:add_to_cart' product.id %}" class="d-inline">
                                                     {% csrf_token %}
                                                     <input type="hidden" name="product_id" value="{{ product.id }}">
-                                                    <button type="submit" class="btn btn-outline-dark btn-sm">
-                                                        <i class="fas fa-shopping-cart"></i>
+                                                    <button type="submit" class="btn btn-outline-dark btn-sm flex-fill">
+                                                        <i class="fas fa-shopping-cart"></i> Add to Cart
                                                     </button>
                                                 </form>
                                             {% endif %}
                                         {% else %}
-                                            <a href="{% url 'users:login' %}?next={{ request.path }}" class="btn btn-outline-primary btn-sm">
-                                                <i class="fas fa-sign-in-alt"></i> Login to Buy
+                                            <a href="{% url 'users:login' %}?next={{ request.path }}" class="btn btn-outline-dark btn-sm flex-fill">
+                                                <i class="fas fa-shopping-cart"></i> Add to Cart
+                                            </a>
+                                        {% endif %}
+
+                                        <!-- Buy Now Button -->
+                                        {% if user.is_authenticated %}
+                                            <form method="post" action="{% url 'products:buy_now' product.id %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="product_id" value="{{ product.id }}">
+                                                <button type="submit" class="btn btn-primary btn-sm flex-fill">
+                                                    <i class="fas fa-bolt"></i> Buy Now
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <a href="{% url 'users:login' %}?next={{ request.path }}" class="btn btn-primary btn-sm flex-fill">
+                                                <i class="fas fa-bolt"></i> Buy Now
                                             </a>
                                         {% endif %}
                                     </div>
