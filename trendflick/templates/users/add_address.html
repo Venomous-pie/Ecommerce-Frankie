@@ -1,168 +1,513 @@
 {% extends 'base.html' %}
-
+{% block title %}Add Address - TrendFlick{% endblock %}
 {% block content %}
 <style>
-    .profile-sidebar {
-        background:rgb(226, 224, 233);
-        border-radius: 16px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-        padding: 32px 0 32px 0;
-        min-height: 600px;
+    .account-container {
+        background: #f8f9fa;
+        min-height: 100vh;
+        padding: 24px 0;
     }
-    .profile-sidebar .nav-link {
-        color: #222;
-        font-weight: 500;
-        padding: 12px 32px;
-        border-radius: 0;
-        transition: background 0.2s;
+    .page-header {
+        text-align: center;
+        margin-bottom: 32px;
     }
-    .profile-sidebar .nav-link.active, .profile-sidebar .nav-link:hover {
-        background: #23247a52;
-        color:rgb(248, 248, 248);
-    }
-
-    .form-label {
-        font-weight: 500;
+    .page-title {
+        font-size: 28px;
+        font-weight: 600;
+        color: #212529;
         margin-bottom: 8px;
     }
-    
+    .page-subtitle {
+        color: #6c757d;
+        font-size: 16px;
+    }
+    .profile-sidebar {
+        background: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border: 1px solid #e9ecef;
+        padding: 24px 0;
+        height: fit-content;
+    }
+    .profile-header {
+        padding: 0 24px 24px 24px;
+        border-bottom: 1px solid #e9ecef;
+        margin-bottom: 24px;
+    }
+    .profile-avatar-sm {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: #e9ecef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+    .profile-avatar-sm img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .profile-username {
+        font-weight: 600;
+        font-size: 18px;
+        color: #212529;
+        margin: 0;
+    }
+    .verified-badge {
+        color: #28a745;
+        font-size: 16px;
+        margin-left: 8px;
+    }
+    .nav-link {
+        color: #495057;
+        font-weight: 500;
+        padding: 12px 24px;
+        border-radius: 0;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+    .nav-link:hover, .nav-link.active {
+        background: #007bff;
+        color: #ffffff;
+    }
+    .profile-section {
+        background: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border: 1px solid #e9ecef;
+        padding: 32px;
+    }
+    .section-header {
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        margin-bottom: 32px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .section-title {
+        font-size: 24px;
+        font-weight: 600;
+        color: #212529;
+        margin: 0;
+    }
+    .section-subtitle {
+        color: #6c757d;
+        font-size: 14px;
+        margin: 4px 0 0 0;
+    }
+    .btn-outline-secondary {
+        background: transparent;
+        border: 2px solid #6c757d;
+        color: #6c757d;
+        border-radius: 8px;
+        padding: 8px 16px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+    }
+    .btn-outline-secondary:hover {
+        background: #6c757d;
+        color: #ffffff;
+        text-decoration: none;
+    }
+    .form-label {
+        font-weight: 500;
+        color: #495057;
+        margin-bottom: 8px;
+        display: block;
+    }
     .form-control {
         border-radius: 8px;
+        border: 2px solid #e9ecef;
         padding: 12px 16px;
-        border: 1px solid #ddd;
-        transition: border-color 0.2s, box-shadow 0.2s;
+        font-size: 16px;
+        transition: all 0.2s ease;
+        width: 100%;
     }
-    
     .form-control:focus {
-        border-color: #371c96;
-        box-shadow: 0 0 0 3px rgba(55, 28, 150, 0.1);
+        border-color: #007bff;
+        box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+        outline: none;
     }
-    
-    .form-check-input:checked {
-        background-color: #371c96;
-        border-color: #371c96;
+    .form-control.is-invalid {
+        border-color: #dc3545;
     }
-    
-    .btn-primary {
-        background: rgb(5, 104, 253);
-        border: none;
-        padding: 12px 24px;
-        border-radius: 8px;
-        font-weight: 500;
+    .form-control.is-valid {
+        border-color: #28a745;
     }
-    
-    .btn-primary:hover {
-        background: rgb(5, 104, 253);
-    }
-    
-    .btn-outline-secondary {
-        border-color: #ddd;
-        color: #666;
-    }
-    
-    .btn-outline-secondary:hover {
+    .form-check {
+        display: flex;
+        align-items: center;
+        padding: 16px;
         background: #f8f9fa;
-        border-color: #ddd;
-        color: #666;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+    }
+    .form-check-input {
+        width: 18px;
+        height: 18px;
+        border: 2px solid #007bff;
+        border-radius: 4px;
+    }
+    .form-check-input:checked {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+    .form-check-label {
+        font-weight: 500;
+        color: #495057;
+        margin: 0;
+        cursor: pointer;
+    }
+    .btn-primary {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        border: none;
+        border-radius: 8px;
+        padding: 12px 24px;
+        font-weight: 600;
+        color: #ffffff;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+    }
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+        color: #ffffff;
+        text-decoration: none;
+    }
+    .btn-secondary {
+        background: #6c757d;
+        border: none;
+        border-radius: 8px;
+        padding: 12px 24px;
+        font-weight: 500;
+        color: #ffffff;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+    }
+    .btn-secondary:hover {
+        background: #5a6268;
+        color: #ffffff;
+        text-decoration: none;
+    }
+    .required-indicator {
+        color: #dc3545;
+        margin-left: 4px;
+    }
+    .form-help {
+        font-size: 12px;
+        color: #6c757d;
+        margin-top: 4px;
+    }
+    .address-preview {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 16px;
+        margin-top: 24px;
+        display: none;
+    }
+    .address-preview h6 {
+        font-weight: 600;
+        color: #212529;
+        margin-bottom: 8px;
+    }
+    .address-preview-content {
+        color: #6c757d;
+        font-size: 14px;
+        line-height: 1.5;
     }
 </style>
 
-<div class="container-fluid" style="background: #fafafa; min-height: 100vh; padding: 40px 0;">
-    <div class="row justify-content-center">
-        <div class="col-lg-3 mb-4 my-3">
-            <div class="profile-sidebar">
-                <div class="d-flex align-items-center mb-4 px-4">
-                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width:48px; height:48px; font-size:1.5rem;">
-                        <i class="fa fa-user"></i>
-                    </div>
-                    <div class="ms-3">
-                        <div style="font-weight:600; font-size: 2rem; color:rgb(0, 0, 0); display: flex; align-items: center;">
-                            {{ user.username }}
-                            <span title="Verified" style="margin-left: 8px; color: #2196f3; font-size: 1.0rem;">
-                                <i class="fa fa-check-circle"></i>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-                <hr>
-                <nav class="nav flex-column">
-                    <a class="nav-link" href="{% url 'users:manage_account' %}">Profile</a>
-                    <a class="nav-link" href="#">Banks & Cards</a>
-                    <a class="nav-link active" href="{% url 'users:addresses' %}">Addresses</a>
-                    <a class="nav-link" href="{% url 'users:change_password'%}">Change Password</a>
-                    <a class="nav-link" href="#">Privacy Settings</a>
-                    <a class="nav-link" href="#">Notification Settings</a>
-                </nav>
-                <hr>
-            </div>
+<div class="account-container">
+    <div class="container">
+        <div class="page-header">
+            <h1 class="page-title">Account Management</h1>
+            <p class="page-subtitle">Add a new shipping address</p>
         </div>
-
-        <div class="col-lg-7 mb-4 my-4">
-            <div class="profile-section">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div>
-                        <h4 style="font-weight:600;">Add New Address</h4>
-                        <div style="color:#888; font-size:1rem;">Add a new shipping address</div>
+        
+        <div class="row">
+            <div class="col-lg-3 mb-4">
+                <div class="profile-sidebar">
+                    <div class="profile-header">
+                        <div class="d-flex align-items-center">
+                            <div class="profile-avatar-sm">
+                                {% if user.profile.avatar %}
+                                    <img src="{{ user.profile.avatar.url }}" alt="Avatar">
+                                {% else %}
+                                    <i class="fas fa-user text-muted"></i>
+                                {% endif %}
+                            </div>
+                            <div class="ms-3 flex-grow-1">
+                                <div class="profile-username">
+                                    {{ user.username }}
+                                    <span class="verified-badge">
+                                        <i class="fas fa-check-circle"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <a href="{% url 'users:addresses' %}" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-left me-2"></i> Back to Addresses
-                    </a>
+                    
+                    <nav class="nav flex-column">
+                        <a class="nav-link" href="{% url 'users:manage_account' %}">
+                            <i class="fas fa-user me-2"></i>Profile
+                        </a>
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-credit-card me-2"></i>Banks & Cards
+                        </a>
+                        <a class="nav-link active" href="{% url 'users:addresses' %}">
+                            <i class="fas fa-map-marker-alt me-2"></i>Addresses
+                        </a>
+                        <a class="nav-link" href="{% url 'users:change_password' %}">
+                            <i class="fas fa-lock me-2"></i>Change Password
+                        </a>
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-shield-alt me-2"></i>Privacy Settings
+                        </a>
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-bell me-2"></i>Notifications
+                        </a>
+                    </nav>
                 </div>
+            </div>
 
-                <form method="POST" action="{% url 'users:add_address' %}">
-                    {% csrf_token %}
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Full Name</label>
-                            <input type="text" class="form-control" name="full_name" required>
+            <div class="col-lg-9">
+                <div class="profile-section">
+                    <div class="section-header d-flex justify-content-between align-items-start">
+                        <div>
+                            <h4 class="section-title">Add New Address</h4>
+                            <p class="section-subtitle">Enter your shipping address details below</p>
                         </div>
+                        <a href="{% url 'users:addresses' %}" class="btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i>
+                            Back to Addresses
+                        </a>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Street Address</label>
-                        <input type="text" class="form-control" name="street_address" required>
-                    </div>
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}success{% endif %} mb-4" role="alert">
+                                <i class="fas fa-{% if message.tags == 'error' %}exclamation-circle{% else %}check-circle{% endif %} me-2"></i>
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
 
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">City</label>
-                            <input type="text" class="form-control" name="city" required>
+                    <form method="POST" action="{% url 'users:add_address' %}" id="addressForm">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">
+                                    Full Name<span class="required-indicator">*</span>
+                                </label>
+                                <input type="text" class="form-control" name="full_name" id="full_name" required 
+                                       placeholder="Enter your full name">
+                                <div class="form-help">This will appear on shipping labels</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">
+                                    Phone Number
+                                </label>
+                                <input type="tel" class="form-control" name="phone_number" id="phone_number" 
+                                       placeholder="Enter your phone number">
+                                <div class="form-help">For delivery coordination (optional)</div>
+                            </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">State/Province</label>
-                            <input type="text" class="form-control" name="state" required>
-                        </div>
-                    </div>
 
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Postal Code</label>
-                            <input type="text" class="form-control" name="postal_code" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Country</label>
-                            <input type="text" class="form-control" name="country" required>
-                        </div>
-                    </div>
-
-                    <div class="mb-4">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="is_default" id="is_default">
-                            <label class="form-check-label" for="is_default">
-                                Set as default shipping address
+                        <div class="mb-3">
+                            <label class="form-label">
+                                Street Address<span class="required-indicator">*</span>
                             </label>
+                            <input type="text" class="form-control" name="street_address" id="street_address" required 
+                                   placeholder="Enter your street address">
                         </div>
-                    </div>
 
-                    <div class="d-flex gap-3">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save me-2"></i> Save Address
-                        </button>
-                        <a href="{% url 'users:addresses' %}" class="btn btn-outline-secondary">Cancel</a>
-                    </div>
-                </form>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">
+                                    City<span class="required-indicator">*</span>
+                                </label>
+                                <input type="text" class="form-control" name="city" id="city" required 
+                                       placeholder="Enter your city">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">
+                                    State/Province<span class="required-indicator">*</span>
+                                </label>
+                                <input type="text" class="form-control" name="state" id="state" required 
+                                       placeholder="Enter your state or province">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">
+                                    Postal Code<span class="required-indicator">*</span>
+                                </label>
+                                <input type="text" class="form-control" name="postal_code" id="postal_code" required 
+                                       placeholder="Enter your postal code">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">
+                                    Country<span class="required-indicator">*</span>
+                                </label>
+                                <select class="form-control" name="country" id="country" required>
+                                    <option value="">Select your country</option>
+                                    <option value="United States">United States</option>
+                                    <option value="Canada">Canada</option>
+                                    <option value="United Kingdom">United Kingdom</option>
+                                    <option value="Australia">Australia</option>
+                                    <option value="Germany">Germany</option>
+                                    <option value="France">France</option>
+                                    <option value="Japan">Japan</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input mx-4" type="checkbox" name="is_default" id="is_default">
+                                <label class="form-check-label" for="is_default">
+                                    Set as my default shipping address
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="address-preview" id="addressPreview">
+                            <h6><i class="fas fa-eye me-2"></i>Address Preview</h6>
+                            <div class="address-preview-content" id="previewContent">
+                                <!-- Address preview will be populated here -->
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-3 mt-4">
+                            <button type="submit" class="btn btn-primary" id="submitBtn">
+                                <i class="fas fa-save"></i>
+                                Save Address
+                            </button>
+                            <a href="{% url 'users:addresses' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i>
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 </div>
-{% endblock %} 
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('addressForm');
+    const preview = document.getElementById('addressPreview');
+    const previewContent = document.getElementById('previewContent');
+    
+    // Form fields
+    const fields = {
+        full_name: document.getElementById('full_name'),
+        street_address: document.getElementById('street_address'),
+        city: document.getElementById('city'),
+        state: document.getElementById('state'),
+        postal_code: document.getElementById('postal_code'),
+        country: document.getElementById('country')
+    };
+    
+    // Update address preview
+    function updatePreview() {
+        const values = {};
+        let hasContent = false;
+        
+        Object.keys(fields).forEach(key => {
+            values[key] = fields[key].value.trim();
+            if (values[key]) hasContent = true;
+        });
+        
+        if (hasContent) {
+            let previewHTML = '';
+            
+            if (values.full_name) {
+                previewHTML += `<strong>${values.full_name}</strong><br>`;
+            }
+            if (values.street_address) {
+                previewHTML += `${values.street_address}<br>`;
+            }
+            if (values.city || values.state) {
+                previewHTML += `${values.city}${values.city && values.state ? ', ' : ''}${values.state}<br>`;
+            }
+            if (values.postal_code || values.country) {
+                previewHTML += `${values.postal_code}${values.postal_code && values.country ? ', ' : ''}${values.country}`;
+            }
+            
+            previewContent.innerHTML = previewHTML;
+            preview.style.display = 'block';
+        } else {
+            preview.style.display = 'none';
+        }
+    }
+    
+    // Add event listeners to all form fields
+    Object.values(fields).forEach(field => {
+        field.addEventListener('input', updatePreview);
+        field.addEventListener('change', updatePreview);
+    });
+    
+    // Form validation
+    function validateForm() {
+        const requiredFields = ['full_name', 'street_address', 'city', 'state', 'postal_code', 'country'];
+        let isValid = true;
+        
+        requiredFields.forEach(fieldName => {
+            const field = fields[fieldName];
+            if (!field.value.trim()) {
+                field.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                field.classList.remove('is-invalid');
+                field.classList.add('is-valid');
+            }
+        });
+        
+        return isValid;
+    }
+    
+    // Form submission
+    form.addEventListener('submit', function(e) {
+        if (!validateForm()) {
+            e.preventDefault();
+            alert('Please fill in all required fields.');
+        }
+    });
+    
+    // Real-time validation
+    Object.values(fields).forEach(field => {
+        field.addEventListener('blur', function() {
+            if (this.hasAttribute('required')) {
+                if (!this.value.trim()) {
+                    this.classList.add('is-invalid');
+                    this.classList.remove('is-valid');
+                } else {
+                    this.classList.remove('is-invalid');
+                    this.classList.add('is-valid');
+                }
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
