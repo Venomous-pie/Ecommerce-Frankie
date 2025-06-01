@@ -83,10 +83,6 @@ DATABASES = {
     }
 }
 
-# Replace with your actual client ID and secret from Google
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '1086667223015-gfh3q84bppdrctjhhdsgm382t3a4lipt.apps.googleusercontent.com'
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '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'
-
 LOGIN_URL = 'login'
 LOGOUT_URL = 'logout'
 LOGIN_REDIRECT_URL = '/'
