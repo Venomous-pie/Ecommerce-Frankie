@@ -14,15 +14,17 @@ def home(request):
     categories = Category.objects.all()[:6]
     is_subscribed = False
     if request.user.is_authenticated:
-        is_subscribed = NewsletterSubscription.objects.filter(email=request.user.email).exists()
-
-    # Get 12 random featured products
+        is_subscribed = NewsletterSubscription.objects.filter(email=request.user.email).exists()    # Get trending products
+    trending_products = Product.objects.filter(trending=True).order_by('?')[:8]
+    
+    # Get featured products
     featured_products = Product.objects.filter(featured=True).order_by('?')[:12]
 
     return render(request, 'home.html', {
         'categories': categories,   
         'is_subscribed': is_subscribed,
         'featured_products': featured_products,
+        'trending_products': trending_products,
     })
 
 def about(request):
