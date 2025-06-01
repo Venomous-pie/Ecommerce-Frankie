@@ -8,6 +8,8 @@ from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
 from orders.models import CartItem, Cart
 from users.models import Wishlist
+import random
+from django import template
 
 
 @login_required(login_url='users:login')
@@ -276,3 +278,9 @@ def buy_now(request, product_id):
         return redirect('orders:checkout')  # Change to your actual checkout URL name
 
     return redirect('products:all_product', category='all')
+
+register = template.Library()
+
+@register.filter
+def random_rating(product):
+    return random.randint(3, 5)
