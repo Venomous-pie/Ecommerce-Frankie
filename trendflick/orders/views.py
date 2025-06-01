@@ -180,7 +180,7 @@ def place_order_view(request):
         address_id = request.POST.get('address_id')
         address = get_object_or_404(Address, id=address_id, user=request.user)
 
-        phone = address.phone_number
+        phone = request.user.profile.phone
         email = request.user.email
         notes = request.POST.get('notes', '')
         payment_method = request.POST.get('payment_method', 'cod')
@@ -204,7 +204,7 @@ def place_order_view(request):
         order = Order.objects.create(
             user=request.user,
             address=address,
-            shipping_address=address.formatted(),  # assuming your Address model has .formatted()
+            shipping_address=address.formatted(),
             phone=phone,
             email=email,
             subtotal=subtotal,

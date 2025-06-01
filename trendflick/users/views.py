@@ -180,6 +180,12 @@ def toggle_wishlist(request, pk):
 
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
+@login_required(login_url='users:login')
+@require_POST
+def clear_wishlist(request):
+    Wishlist.objects.filter(user=request.user).first().products.clear()
+    return redirect('users:wishlist')
+
 def addresses_view(request):
     addresses = Address.objects.filter(user=request.user)
     return render(request, 'users/addresses.html', {

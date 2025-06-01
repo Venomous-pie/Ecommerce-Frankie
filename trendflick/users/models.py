@@ -53,7 +53,6 @@ class Address(models.Model):
     state = models.CharField(max_length=100)
     postal_code = models.CharField(max_length=20)
     country = models.CharField(max_length=100)
-    phone_number = models.CharField(max_length=20)
     is_default = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -62,7 +61,7 @@ class Address(models.Model):
         return f"{self.full_name}'s address in {self.city}"
     
     def formatted(self):
-        return f"{self.full_name}\n{self.street_address}\n{self.city}, {self.state} {self.postal_code}\n{self.country}\nPhone: {self.phone_number}"
+        return f"{self.full_name}\n{self.street_address}\n{self.city}, {self.state} {self.postal_code}\n{self.country}\nPhone: {self.user.profile.phone}"
 
     class Meta:
         verbose_name_plural = "Addresses"

@@ -246,3 +246,33 @@ def search_products(request):
         'current_sort': sort,
     }
     return render(request, 'products/search_results.html', context)
+
+@login_required(login_url='users:login')
+def buy_now(request, product_id):
+    if request.method == 'POST':
+        quantity = request.POST.get('quantity', 1)
+        try:
+            quantity = int(quantity)
+            if quantity < 1:
+                quantity = 1
+        except (TypeError, ValueError):
+            quantity = 1
+
+        product = get_object_or_404(Product, id=product_id)
+        cart, _ = Cart.objects.get_or_create(user=request.user)
+        cart_item, created = CartItem.objects.get_or_create(
+            cart=cart,
+            user=request.user,
+            product=product
+        )
+        if not created:
+            cart_item.quantity += quantity
+            cart_item.save()
+        else:
+            cart_item.quantity = quantity
+            cart_item.save()
+
+        messages.success(request, f"Added {product.name} (x{quantity}) to your cart. Proceed to checkout.")
+        return redirect('orders:checkout')  # Change to your actual checkout URL name
+
+    return redirect('products:all_product', category='all')
