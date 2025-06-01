@@ -28,6 +28,7 @@ class Command(BaseCommand):
                     price=row['price'],
                     category=category,
                     defaults={
+                        'trending': row['trending'].strip().lower() == 'yes',
                         'featured': row['featured'].strip().lower() == 'yes',
                         'image': image_path,
                     }
