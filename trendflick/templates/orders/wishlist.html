@@ -1,85 +1,186 @@
 {% extends "base.html" %}
+{% load user_filters %}
 
 {% block title %}Wishlist - TrendFlick{% endblock %}
 
-{% block content %}
-<div class="container my-5">
-    <h1 class="mb-4">My Wishlist <span class="text-danger">&hearts;</span></h1>
-    {% if wishlist_items %}
-        <div class="row" id="wishlist-items-container">
-            {% for item in wishlist_items %}
-                <div class="col-md-4 mb-4 wishlist-item" data-product-id="{{ item.id }}">
-                    <div class="card h-100 shadow-sm">
-                        <img src="{{ item.image.url }}" class="card-img-top" alt="{{ item.name }}">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ item.name }}</h5>
-                            <p class="card-text text-muted">{{ item.description|truncatewords:15 }}</p>
-                            <p class="card-text fw-bold">${{ item.price }}</p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <a href="{% url 'products:detail' item.id %}" class="btn btn-primary">View Product</a>
-                                <form method="POST" action="{% url 'users:toggle_wishlist' item.id %}" class="wishlist-form">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="product_id" value="{{ item.id }}">
-                                    <button type="submit" class="btn btn-outline-danger" aria-label="Remove from wishlist">
-                                        <i class="fas fa-heart"></i> Remove
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <div class="alert alert-info text-center" role="alert">
-            Your wishlist is empty. Start adding your favorite products!
-        </div>
-    {% endif %}
-</div>
+{% block extra_css %}
+<style>
+    .wishlist-item img.card-img-top {
+        width: 100%;
+        height: 300px;
+        object-fit: cover;
+        object-position: center;
+    }
+
+    .wishlist-item {
+        transition: transform 0.3s ease;
+        border: none;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .wishlist-item:hover {
+        transform: translateY(-5px);
+    }
+
+    .btn-remove {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(255,255,255,0.9);
+        border: none;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 1;
+        transition: all 0.3s ease;
+    }
+
+    .btn-remove:hover {
+        background: #dc3545;
+        color: white;
+    }
+</style>
 {% endblock %}
 
-{% block extra_js %}
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="fw-bold">My Wishlist</h1>
+            <p class="text-muted">Items you've saved for later</p>
+        </div>
+        <div class="col-auto d-flex align-items-center">
+            <button id="clearAll" class="btn btn-outline-danger">
+                <i class="bi bi-trash me-2"></i>Clear All
+            </button>
+        </div>
+    </div>
+
+    <!-- Wishlist Items -->
+    <div class="row g-4" id="wishlistItems">
+        {% for item in wishlist_items %}
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card h-100 wishlist-item position-relative">
+                <button class="btn-remove" aria-label="Remove item">
+                    <i class="bi bi-x"></i>
+                </button>
+                <img src="{{ item.image.url }}" class="card-img-top" alt="{{ item.name }}">
+                <div class="card-body">
+                    <h5 class="card-title">{{ item.name }}</h5>
+                    <p class="card-text text-muted">{{ item.description|truncatewords:15 }}</p>
+                    <p class="price mb-3">${{ item.price }}</p>
+                    <div class="d-grid">
+                        <a href="{% url 'products:detail' item.id %}" class="btn btn-primary">
+                            <i class="bi bi-eye me-2"></i>View Product
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Empty State (hidden by default) -->
+    <div class="empty-wishlist d-none" id="emptyWishlist">
+        <i class="bi bi-heart text-muted" style="font-size: 4rem;"></i>
+        <h3 class="mt-3">Your wishlist is empty</h3>
+        <p class="text-muted">Items added to your wishlist will appear here</p>
+        <a href="#" class="btn btn-primary mt-2">Continue Shopping</a>
+    </div>
+
+    <!-- Wishlist Summary -->
+    <div class="card mt-4" id="wishlistSummary">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-0">Wishlist Summary</h5>
+                    <p class="text-muted mb-0">{{ wishlist_items|length }} items in your wishlist</p>
+                </div>                    
+                <div class="text-end">
+                        <p class="mb-1">Total Value:</p>
+                        <h4 class="price mb-0">
+                        ${{ wishlist_items|calculate_total|floatformat:2 }}
+                        </h4>
+                </div>
+            </div>
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
+                <button class="btn btn-success">
+                    <i class="bi bi-cart-plus me-2"></i>Add All to Cart
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer class="bg-light py-4 mt-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <p class="mb-0">© 2025 ShopEasy. All rights reserved.</p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <a href="#" class="text-decoration-none text-muted me-3">Privacy Policy</a>
+                <a href="#" class="text-decoration-none text-muted me-3">Terms of Service</a>
+                <a href="#" class="text-decoration-none text-muted">Contact Us</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Bootstrap JS Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('.wishlist-form').forEach(form => {
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
+    // Simple functionality for the wishlist page
+    document.addEventListener('DOMContentLoaded', function() {
+        // Remove item functionality
+        document.querySelectorAll('.btn-remove').forEach(button => {
+            button.addEventListener('click', function() {
+                const item = this.closest('.col-12');
+                item.remove();
+                updateWishlistCount();
+            });
+        });
 
-      const url = form.action;
-      const csrfToken = form.querySelector('input[name="csrfmiddlewaretoken"]').value;
+        // Clear all functionality
+        document.getElementById('clearAll').addEventListener('click', function() {
+            document.getElementById('wishlistItems').innerHTML = '';
+            document.getElementById('emptyWishlist').classList.remove('d-none');
+            document.getElementById('wishlistSummary').classList.add('d-none');
+            updateWishlistCount();
+        });
 
-      fetch(url, {
-        method: 'POST',
-        headers: {
-          'X-CSRFToken': csrfToken,
-          'X-Requested-With': 'XMLHttpRequest',
-        },
-        body: new FormData(form),
-      })
-      .then(response => response.json())
-      .then(data => {
-        if(data.success) {
-          // Remove item from DOM on toggle off (remove)
-          if (!data.in_wishlist) {
-            const productId = form.querySelector('input[name="product_id"]').value;
-            const itemCard = document.querySelector(`.wishlist-item[data-product-id="${productId}"]`);
-            if(itemCard) itemCard.remove();
+        function updateWishlistCount() {
+            const itemCount = document.querySelectorAll('.wishlist-item').length;
 
-            // Optional: Show message if wishlist empty
-            if(document.querySelectorAll('.wishlist-item').length === 0) {
-              document.getElementById('wishlist-items-container').innerHTML = `
-                <div class="alert alert-info text-center" role="alert">
-                  Your wishlist is empty. Start adding your favorite products!
-                </div>`;
+            if (itemCount === 0) {
+                document.getElementById('emptyWishlist').classList.remove('d-none');
+                document.getElementById('wishlistSummary').classList.add('d-none');
+            } else {
+                document.getElementById('emptyWishlist').classList.add('d-none');
+                document.getElementById('wishlistSummary').classList.remove('d-none');
+
+                // Update the count in the summary
+                const countElement = document.querySelector('#wishlistSummary .text-muted');
+                countElement.textContent = `${itemCount} items in your wishlist`;
+
+                // Calculate and update the total value
+                let total = 0;
+                document.querySelectorAll('.price').forEach(priceElement => {
+                    if (!priceElement.closest('#wishlistSummary')) {
+                        const price = parseFloat(priceElement.textContent.replace('$', ''));
+                        total += price;
+                    }
+                });
+
+                document.querySelector('#wishlistSummary .price').textContent = `$${total.toFixed(2)}`;
             }
-          }
-        } else if(data.error) {
-          alert(data.error);
         }
-      })
-      .catch(() => alert('Something went wrong. Please try again.'));
     });
-  });
-});
 </script>
 {% endblock %}

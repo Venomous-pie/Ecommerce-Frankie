@@ -34,6 +34,16 @@ body {
     transition: transform 0.3s ease;
     border: none;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    aspect-ratio: 1 / 1;
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    border-radius: 15px;
+    overflow: hidden;
+    position: relative;
 }
 
 .product-card:hover {
@@ -204,4 +214,27 @@ footer {
     .product-card {
         margin-bottom: 1.5rem;
     }
-} 
+}
+
+/* Ensure grid columns don't stretch cards vertically */
+.row.g-4 > [class*='col-'] > .product-card,
+.row.g-4 > [class*='col-'] > .card.product-card {
+    height: 100%;
+}
+
+.product-card .card-img-top,
+.product-card img {
+    aspect-ratio: 1 / 1;
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    object-position: center;
+    background: #f8f9fa;
+}
+
+.product-card .card-body {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}

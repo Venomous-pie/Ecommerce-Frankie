@@ -6,11 +6,6 @@ from django.db import IntegrityError
 import json
 from .models import NewsletterSubscription
 from products.models import Product
-from django.core.paginator import Paginator
-from django.db.models import Q
-from orders.models import CartItem, Cart
-from users.models import Wishlist
-from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from products.models import Category
 from django.views.decorators.csrf import csrf_protect
 
@@ -21,7 +16,14 @@ def home(request):
     if request.user.is_authenticated:
         is_subscribed = NewsletterSubscription.objects.filter(email=request.user.email).exists()
 
-    return render(request, 'home.html', {'categories': categories, 'is_subscribed': is_subscribed,})
+    # Get 12 random featured products
+    featured_products = Product.objects.filter(featured=True).order_by('?')[:12]
+
+    return render(request, 'home.html', {
+        'categories': categories,   
+        'is_subscribed': is_subscribed,
+        'featured_products': featured_products,
+    })
 
 def about(request):
     return render(request, 'core/about.html')
