@@ -5,438 +5,202 @@
 {% block title %}Search Results - TrendFlick{% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-5">
-    <!-- Search and Filter Section -->
-    <div class="row mb-4 sticky-top" style="top: 60px; z-index: 1000; background-color: white;">
-        <div class="col-12">
+<div class="container py-5">
+
+    <!-- Search Header -->
+    <header class="text-center mb-5">
+    <h1 class="display-4 mb-3">
+        {% if query %}
+            Search Results
+        {% elif category %}
+            Products in "{{ category.name }}"
+        {% else %}
+            All Products
+        {% endif %}
+    </h1>
+
+    {% if query %}
+        <p class="lead">Showing results for "<strong>{{ query }}</strong>"</p>
+    {% elif category %}
+        <p class="lead">Browse products under the "{{ category.name }}" category.</p>
+    {% else %}
+        <p class="lead">Use the filters to refine your search or browse our collection.</p>
+    {% endif %}
+</header>
+
+
+    <div class="row mb-4">
+        <!-- Filters Sidebar -->
+        <div class="col-md-3">
             <div class="card shadow-sm">
                 <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-4">
-                            <div class="input-group">
-                                <input type="text" class="form-control" placeholder="Search products..." id="searchInput">
-                                <button class="btn btn-primary" type="button">
-                                    <i class="fas fa-search"></i>
-                                </button>
+                    <h5 class="card-title mb-3">Filters</h5>
+                    <form method="GET" class="mb-0">
+                        <!-- Keep the query parameter on filter submission -->
+                        <input type="hidden" name="q" value="{{ query }}">
+
+                        <!-- Price Range -->
+                        <div class="mb-4">
+                            <label for="min_price" class="form-label">Price Range</label>
+                            <div class="d-flex gap-2">
+                                <input type="number" id="min_price" class="form-control" name="min_price" placeholder="Min" min="0" value="{{ request.GET.min_price }}">
+                                <input type="number" id="max_price" class="form-control" name="max_price" placeholder="Max" min="0" value="{{ request.GET.max_price }}">
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <select class="form-select" id="categoryFilter">
-                                <option value="">All Categories</option>
-                                {% for category in categories %}
-                                <option value="{{ category.id }}">{{ category.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <select class="form-select" id="sortFilter">
-                                <option value="newest">Newest First</option>
-                                <option value="price_low">Price: Low to High</option>
-                                <option value="price_high">Price: High to Low</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <div class="row">
-        <!-- Sidebar -->
-        <div class="col-lg-3 mb-4">
-            <div class="card shadow-sm mb-3 sticky-top" style="top: 150px; z-index: 1000; background-color: white;">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0">Categories</h5>
-                </div>
-                <div class="card-body p-0">
-                    <div class="list-group list-group-flush">
-                        <a href="#" class="list-group-item list-group-item-action {% if not selected_category %}active{% endif %}">
-                            All Products
-                        </a>
-                        {% for category in categories %}
-                        <a href="#" 
-                           class="list-group-item list-group-item-action {% if selected_category == category.id %}active{% endif %}">
-                            {{ category.name }}
-                        </a>
-                        {% endfor %}
-                    </div>
+                        <!-- Sort By -->
+                        <div class="mb-4">
+                            <label for="sort" class="form-label">Sort By</label>
+                            <select id="sort" class="form-select" name="sort">
+                                <option value="relevance" {% if current_sort == 'relevance' or not current_sort %}selected{% endif %}>Relevance</option>
+                                <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Newest First</option>
+                                <option value="price_low" {% if current_sort == 'price_low' %}selected{% endif %}>Price: Low to High</option>
+                                <option value="price_high" {% if current_sort == 'price_high' %}selected{% endif %}>Price: High to Low</option>
+                                <option value="name" {% if current_sort == 'name' %}selected{% endif %}>Name: A to Z</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-dark w-100">Apply Filters</button>
+                    </form>
                 </div>
             </div>
         </div>
 
-        <!-- Products Grid -->
-        <div class="col-lg-9">
-            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
-                {% for product in products %}
-                <div class="col">
-                    <div class="card h-100 shadow-sm border-0 product-card">
-                        <div class="position-relative">
-                            <img src="{{ product.image }}" class="card-img-top img-fluid product-image" alt="{{ product.title }}">
+        <!-- Search Results Grid -->
+        <div class="col-md-9">
+            {% if products %}
+                <div class="row g-4">
+                    {% for product in products %}
+                        <div class="col-md-4">
+                            <div class="product-card card h-100 shadow-sm">
+                                <div class="position-relative">
+                                    <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                                    <div class="product-overlay">
+                                        <a href="{% url 'products:detail' product.id %}" class="btn btn-light">View Details</a>
+                                    </div>
 
-                            {% if product.stock == 0 %}
-                            <div class="position-absolute top-0 start-0 bg-danger text-white p-2 rounded-bottom-right">
-                                Out of Stock
-                            </div>
-                            {% endif %}
-                            <div class="card-img-overlay d-flex align-items-center justify-content-center">
-                                <div class="product-actions">
-                                    <a href="#" class="btn btn-primary btn-sm quick-view">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    <button class="btn btn-outline-light btn-sm wishlist-btn" data-product-id="{{ product.id }}">
-                                        <i class="far fa-heart"></i>
-                                    </button>
+                                    {% if user.is_authenticated %}
+                                        <form method="POST" action="{% url 'users:toggle_wishlist' product.id %}" class="wishlist-form">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="product_id" value="{{ product.id }}">
+                                            <button type="submit" class="wishlist-btn" aria-label="Toggle wishlist">
+                                                {% if product.in_wishlist %}
+                                                    <i class="fas fa-heart text-danger"></i>
+                                                {% else %}
+                                                    <i class="far fa-heart"></i>
+                                                {% endif %}
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <a href="{% url 'users:login' %}?next={{ request.path }}" class="wishlist-btn text-dark">
+                                            <i class="far fa-heart"></i>
+                                        </a>
+                                    {% endif %}
+
+                                    {% if product.discount_percentage %}
+                                        <span class="badge bg-danger position-absolute top-0 start-0 m-2">
+                                            -{{ product.discount_percentage }}%
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                <div class="card-body d-flex flex-column">
+                                    <h5 class="card-title">{{ product.name }}</h5>
+
+                                    <!-- Price -->
+                                    <div class="mb-3">
+                                        <span class="fw-bold fs-4 text-dark">${{ product.price }}</span>
+                                        {% if product.compare_at_price %}
+                                            <small class="text-muted text-decoration-line-through ms-2">
+                                                ${{ product.compare_at_price }}
+                                            </small>
+                                        {% endif %}
+                                    </div>
+                                    <!-- Action Buttons -->
+                                    <div class="mt-auto d-flex gap-2">
+                                        {% if user.is_authenticated %}
+                                            {% if product.in_cart %}
+                                                <button class="btn btn-success btn-sm flex-fill" disabled>In Cart</button>
+                                                <a href="{% url 'products:checkout_single' product.id %}" class="btn btn-warning btn-sm flex-fill">Buy Now</a>
+                                            {% else %}
+                                                <form method="post" action="{% url 'products:add_to_cart' product.id %}" class="flex-fill">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="product_id" value="{{ product.id }}">
+                                                    <button type="submit" class="btn btn-outline-dark btn-sm w-100">
+                                                        <i class="fas fa-shopping-cart"></i> Add to Cart
+                                                    </button>
+                                                </form>
+                                                <form method="post" action="{% url 'products:buy_now' product.id %}" class="flex-fill ms-1">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="product_id" value="{{ product.id }}">
+                                                    <button type="submit" class="btn btn-warning btn-sm w-100">
+                                                        <i class="fas fa-bolt"></i> Buy Now
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                        {% else %}
+                                            <a href="{% url 'users:login' %}?next={{ request.path }}" class="btn btn-outline-primary btn-sm flex-fill">
+                                                <i class="fas fa-sign-in-alt"></i> Login to Buy
+                                            </a>
+                                        {% endif %}
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title text-truncate" title="{{ product.title }}">{{ product.title }}</h5>
-                            <p class="card-text text-muted small mb-2">{{ product.category.name }}</p>
-                            <p class="card-text fw-bold text-primary mb-3">₱ {{ product.price }}</p>
-                            <div class="product-rating">
-                                <div class="" style="color: #ffd700;">★★★★★</div>
-                            </div>
-                            <div class="mt-auto">
-                                {% if product.stock > 0 %}
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-outline-primary flex-grow-1 add-to-cart-btn" data-product-id="{{ product.id }}">
-                                        <i class="fas fa-shopping-cart me-2"></i>Add to Cart
-                                    </button>
-                                    <button class="btn btn-primary flex-grow-1 buy-now-btn" data-product-id="{{ product.id }}" style="transition: transform 0.3s ease, box-shadow 0.3s ease;">
-                                        <i class="fas fa-bolt me-2"></i>Buy Now
-                                    </button>
-                                    <style>
-                                        .buy-now-btn:hover {
-                                            transform: translateY(-2px);
-                                            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-                                        }
-                                    </style>
-                                </div>
-                                {% else %}
-                                <button class="btn btn-outline-secondary w-100" disabled>
-                                    Out of Stock
-                                </button>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% empty %}
-                <div class="col-12">
-                    <div class="alert alert-info">
-                        No products found. Please try different filters.
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-
-            <!-- Pagination -->
-            {% if products.has_other_pages %}
-            <nav aria-label="Page navigation" class="mt-4">
-                <ul class="pagination justify-content-center">
-                    {% if products.has_previous %}
-                    <li class="page-item">
-                        <a class="page-link" href="#" aria-label="Previous">
-                            <span aria-hidden="true">&laquo;</span>
-                        </a>
-                    </li>
-                    {% endif %}
-
-                    {% for num in products.paginator.page_range %}
-                    <li class="page-item {% if products.number == num %}active{% endif %}">
-                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                    </li>
                     {% endfor %}
+                </div>
 
-                    {% if products.has_next %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ products.next_page_number }}" aria-label="Next">
-                            <span aria-hidden="true">&raquo;</span>
-                        </a>
-                    </li>
-                    {% endif %}
-                </ul>
-            </nav>
+                <!-- Pagination -->
+                {% if products.has_other_pages %}
+                    <nav aria-label="Page navigation" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if products.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?q={{ query }}&page=1{% if current_sort %}&sort={{ current_sort }}{% endif %}">First</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?q={{ query }}&page={{ products.previous_page_number }}{% if current_sort %}&sort={{ current_sort }}{% endif %}">Previous</a>
+                                </li>
+                            {% endif %}
+
+                            {# Show page numbers around the current page #}
+                            {% for num in products.paginator.page_range %}
+                                {% if num == 1 or num == products.paginator.num_pages or num >= products.number|add:'-2' and num <= products.number|add:'2' %}
+                                    {% if num > 1 %}
+                                        {% if num == products.number|add:'-2' %}
+                                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                                        {% endif %}
+                                    {% endif %}
+                                    <li class="page-item {% if products.number == num %}active{% endif %}">
+                                        <a class="page-link" href="?q={{ query }}&page={{ num }}{% if current_sort %}&sort={{ current_sort }}{% endif %}">{{ num }}</a>
+                                    </li>
+                                    {% if num < products.paginator.num_pages %}
+                                        {% if num == products.number|add:'2' %}
+                                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                                        {% endif %}
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if products.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?q={{ query }}&page={{ products.next_page_number }}{% if current_sort %}&sort={{ current_sort }}{% endif %}">Next</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?q={{ query }}&page={{ products.paginator.num_pages }}{% if current_sort %}&sort={{ current_sort }}{% endif %}">Last</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-search fa-4x text-muted mb-4"></i>
+                    <h3>No products found</h3>
+                    <p class="text-muted">Try adjusting your search or filters.</p>
+                    <a href="{% url 'products:all_product' 'all' %}" class="btn btn-dark">Browse All Products</a>
+                </div>
             {% endif %}
         </div>
     </div>
 </div>
-
-<style>
-    .product-card {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        border-radius: 10px;
-        overflow: hidden;
-    }
-    
-    .product-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 30px rgba(0,0,0,0.15) !important;
-    }
-    
-    .product-image {
-        height: 250px;
-        object-fit: cover;
-        transition: transform 0.5s ease;
-    }
-    
-    .product-card:hover .product-image {
-        transform: scale(1.05);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
-    }
-    
-    .product-card .card-img-overlay {
-        opacity: 0;
-        transition: opacity 0.3s ease;
-        background: rgba(0,0,0,0.4);
-
-        background: rgba(0,0,0,0.3);
-
-    }
-    
-    .product-card:hover .card-img-overlay {
-        opacity: 1;
-    }
-    
-
-    .product-actions {
-        display: flex;
-        gap: 10px;
-        transform: translateY(20px);
-        transition: transform 0.3s ease;
-    }
-    
-    .product-card:hover .product-actions {
-        transform: translateY(0);
-    }
-    
-    .quick-view, .wishlist-btn {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.3s ease;
-    }
-    
-    .quick-view:hover, .wishlist-btn:hover {
-        transform: scale(1.1);
-    }
-    
-    .wishlist-btn {
-        background: rgba(255, 255, 255, 0.2);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-    }
-    
-    .wishlist-btn:hover {
-        background: rgba(255, 255, 255, 0.3);
-    }
-    
-    .add-to-cart-btn {
-        transition: all 0.3s ease;
-    }
-    
-    .add-to-cart-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(13, 110, 253, 0.2);
-    }
-
-    .quick-view {
-        opacity: 0;
-        transform: translateY(20px);
-        transition: all 0.3s ease;
-    }
-    
-    .product-card:hover .quick-view {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    
-    .list-group-item.active {
-        background-color: #0d6efd;
-        border-color: #0d6efd;
-    }
-</style>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Search functionality
-        const searchInput = document.getElementById('searchInput');
-        const categoryFilter = document.getElementById('categoryFilter');
-        const sortFilter = document.getElementById('sortFilter');
-        
-        function updateFilters() {
-            const params = new URLSearchParams(window.location.search);
-            if (searchInput.value) params.set('search', searchInput.value);
-            if (categoryFilter.value) params.set('category', categoryFilter.value);
-            if (sortFilter.value) params.set('sort', sortFilter.value);
-            window.location.href = window.location.pathname + '?' + params.toString();
-        }
-        
-        searchInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') updateFilters();
-        });
-        
-        categoryFilter.addEventListener('change', updateFilters);
-        sortFilter.addEventListener('change', updateFilters);
-
-        // Add to Cart functionality
-        const addToCartButtons = document.querySelectorAll('.add-to-cart-btn');
-        addToCartButtons.forEach(button => {
-            button.addEventListener('click', async function() {
-                const productId = this.dataset.productId;
-                const button = this;
-                
-                try {
-                    const response = await fetch(`/add-to-cart/${productId}/`, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (response.ok) {
-                        // Update cart count
-                        updateCartCount(data.cart_count);
-                        
-                        // Show success message
-                        showToast(data.message);
-                        
-                        // Add animation
-                        button.classList.add('add-to-cart-animation');
-                        setTimeout(() => {
-                            button.classList.remove('add-to-cart-animation');
-                        }, 500);
-                    } else {
-                        showToast('Failed to add item to cart', 'error');
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    showToast('An error occurred. Please try again.', 'error');
-                }
-            });
-        });
-
-        // Wishlist functionality
-        const wishlistButtons = document.querySelectorAll('.wishlist-btn');
-        wishlistButtons.forEach(button => {
-            button.addEventListener('click', async function() {
-                const productId = this.dataset.productId;
-                const icon = this.querySelector('i');
-                
-                try {
-                    const response = await fetch(`/toggle-wishlist/${productId}/`, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                        }
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (data.status === 'added') {
-                        icon.classList.remove('far');
-                        icon.classList.add('fas', 'text-danger');
-                        // Show success message
-                        showToast('Product added to wishlist!');
-                    } else if (data.status === 'removed') {
-                        icon.classList.remove('fas', 'text-danger');
-                        icon.classList.add('far');
-                        // Show success message
-                        showToast('Product removed from wishlist!');
-                    }
-                    
-                    // Add animation
-                    this.classList.add('wishlist-animation');
-                    setTimeout(() => {
-                        this.classList.remove('wishlist-animation');
-                    }, 500);
-                } catch (error) {
-                    console.error('Error:', error);
-                    showToast('An error occurred. Please try again.', 'error');
-                }
-            });
-        });
-
-        // Buy Now functionality
-        const buyNowButtons = document.querySelectorAll('.buy-now-btn');
-        buyNowButtons.forEach(button => {
-            button.addEventListener('click', async function(e) {
-                e.preventDefault();
-                const productId = this.dataset.productId;
-                const button = this;
-                
-                try {
-                    // Add loading state
-                    button.disabled = true;
-                    button.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Processing...';
-                    
-                    const response = await fetch(`/buy-now/${productId}/`, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (response.ok) {
-                        // Show success message
-                        showToast(data.message);
-                        // Redirect to success page
-                        window.location.href = data.redirect_url;
-                    } else {
-                        showToast(data.message, 'error');
-                        if (data.redirect_url) {
-                            // If we need to redirect to add address
-                            window.location.href = data.redirect_url;
-                        } else {
-                            // Reset button state
-                            button.disabled = false;
-                            button.innerHTML = '<i class="fas fa-bolt me-2"></i>Buy Now';
-                        }
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    showToast('An error occurred. Please try again.', 'error');
-                    // Reset button state
-                    button.disabled = false;
-                    button.innerHTML = '<i class="fas fa-bolt me-2"></i>Buy Now';
-                }
-            });
-        });
-
-        // Toast notification function
-        function showToast(message, type = 'success') {
-            const toast = document.createElement('div');
-            toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0 position-fixed bottom-0 end-0 m-3`;
-            toast.setAttribute('role', 'alert');
-            toast.setAttribute('aria-live', 'assertive');
-            toast.setAttribute('aria-atomic', 'true');
-            
-            toast.innerHTML = `
-                <div class="d-flex">
-                    <div class="toast-body">
-                        ${message}
-                    </div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>
-            `;
-            
-            document.body.appendChild(toast);
-            const bsToast = new bootstrap.Toast(toast);
-            bsToast.show();
-            
-            toast.addEventListener('hidden.bs.toast', () => {
-                toast.remove();
-            });
-        }
-
-    });
-</script>
 {% endblock %}

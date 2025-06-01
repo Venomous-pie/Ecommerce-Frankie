@@ -6,7 +6,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.core.mail import send_mail
 from django.conf import settings
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth.models import User
 from .models import PasswordResetCode, Wishlist, Address
 from products.models import Product
@@ -14,6 +14,7 @@ from orders.models import Order
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from datetime import datetime
+from django.contrib.auth import update_session_auth_hash
 
 
 def login_view(request):
@@ -137,12 +138,32 @@ def change_password(request):
                 user.set_password(password)
                 messages.success(request, 'Password updated successfully.')
             else:
-                return redirect('change_password')
+                return redirect('users:change_password')
 
         user.save()
         messages.success(request, 'Account details updated successfully.')
         return redirect('users:login')
     return render(request, 'users/change_password.html') 
+
+@login_required(login_url='users:login')
+def update_password(request):
+    if request.method == 'POST':
+        current_password = request.POST.get('current_password')
+        password = request.POST.get('new_password')
+
+        user = request.user
+
+        if not user.check_password(current_password):
+            messages.error(request, "Current password is incorrect.")
+            return render(request, 'users/change_password.html')
+        else:
+            user.set_password(password)
+            user.save()
+            update_session_auth_hash(request, user)
+            messages.success(request, "Password updated successfully.")
+            return redirect('users:manage_account')
+        
+    return render(request, 'users/change_password.html')
 
 @login_required(login_url='users:login')
 def orders(request):
