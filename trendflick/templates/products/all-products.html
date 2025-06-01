@@ -116,24 +116,16 @@
                                         {% endif %}
                                     </div>
                                     <!-- Action Buttons -->
-                                    <div class="mt-auto d-flex gap-2">
+                                    <div class="mt-auto d-flex gap-2 flex-wrap">
                                         {% if user.is_authenticated %}
                                             {% if product.in_cart %}
                                                 <button class="btn btn-success btn-sm flex-fill" disabled>In Cart</button>
-                                                <a href="{% url 'products:checkout_single' product.id %}" class="btn btn-warning btn-sm flex-fill">Buy Now</a>
                                             {% else %}
                                                 <form method="post" action="{% url 'products:add_to_cart' product.id %}" class="flex-fill">
                                                     {% csrf_token %}
                                                     <input type="hidden" name="product_id" value="{{ product.id }}">
                                                     <button type="submit" class="btn btn-outline-dark btn-sm w-100">
                                                         <i class="fas fa-shopping-cart"></i> Add to Cart
-                                                    </button>
-                                                </form>
-                                                <form method="post" action="{% url 'products:buy_now' product.id %}" class="flex-fill ms-1">
-                                                    {% csrf_token %}
-                                                    <input type="hidden" name="product_id" value="{{ product.id }}">
-                                                    <button type="submit" class="btn btn-warning btn-sm w-100">
-                                                        <i class="fas fa-bolt"></i> Buy Now
                                                     </button>
                                                 </form>
                                             {% endif %}
