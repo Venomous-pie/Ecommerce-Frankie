@@ -42,7 +42,7 @@
                             {{ order.address.street_address }}<br>
                             {{ order.address.city }}, {{ order.address.state }} {{ order.address.postal_code }}<br>
                             {{ order.address.country }}<br>
-                            <strong>Phone:</strong> {{ order.user.profile.phone }}
+                            <strong>Phone:</strong> {{ order.phone_number }}
                         {% else %}
                             {{ order.shipping_address }}
                         {% endif %}

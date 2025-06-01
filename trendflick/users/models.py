@@ -49,6 +49,7 @@ class Address(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='addresses')
     full_name = models.CharField(max_length=100)
     street_address = models.CharField(max_length=255)
+    phone_number = models.CharField(max_length=20, blank=True, null=True)
     city = models.CharField(max_length=100)
     state = models.CharField(max_length=100)
     postal_code = models.CharField(max_length=20)
@@ -61,7 +62,7 @@ class Address(models.Model):
         return f"{self.full_name}'s address in {self.city}"
     
     def formatted(self):
-        return f"{self.full_name}\n{self.street_address}\n{self.city}, {self.state} {self.postal_code}\n{self.country}\nPhone: {self.user.profile.phone}"
+        return f"{self.full_name}\n{self.street_address}\n{self.city}, {self.state} {self.postal_code}\n{self.country}\nPhone: {self.phone_number}"
 
     class Meta:
         verbose_name_plural = "Addresses"
