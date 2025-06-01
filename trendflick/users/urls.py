@@ -13,6 +13,7 @@ urlpatterns = [
     path('password-reset/', views.password_reset, name='password_reset'),
     path('change-password/', views.change_password, name='change_password'),
     path('toggle-wishlist/<str:pk>/', views.toggle_wishlist, name='toggle_wishlist'),
+    path('clear-wishlist/', views.clear_wishlist, name='clear_wishlist'),
 
     # Address management URLs
     path('addresses/', views.addresses_view, name='addresses'),

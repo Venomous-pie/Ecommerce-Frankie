@@ -204,7 +204,7 @@ def place_order_view(request):
         order = Order.objects.create(
             user=request.user,
             address=address,
-            shipping_address=address.formatted(),  # assuming your Address model has .formatted()
+            shipping_address=address.formatted(),
             phone=phone,
             email=email,
             subtotal=subtotal,
