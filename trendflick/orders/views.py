@@ -138,7 +138,11 @@ def checkout_view(request):
         return redirect('orders:cart')
 
     profile = request.user.profile
-    default_address = profile.get_default_address()
+    addresses = Address.objects.filter(user=request.user).order_by('-is_default')
+    
+    if not addresses:
+        messages.warning(request, "Please add a shipping address before checkout.")
+        return redirect('users:add_address')
 
     discount = Decimal(request.session.get('discount', 0))
     promo_code_id = request.session.get('promo_code_id')
@@ -165,7 +169,8 @@ def checkout_view(request):
         'total': total,
         'promo_code': promo_code_obj,
         'profile': profile,
-        'address': default_address,
+        'addresses': addresses,
+        'address': addresses.first() if addresses else None,
     }
     return render(request, 'orders/checkout.html', context)
 
@@ -178,13 +183,28 @@ def place_order_view(request):
             return redirect('orders:cart')
 
         address_id = request.POST.get('address_id')
-        address = get_object_or_404(Address, id=address_id, user=request.user)
+        if not address_id:
+            messages.error(request, "Please provide a shipping address.")
+            return redirect('orders:checkout')
 
-        phone = request.user.profile.phone
+        try:
+            address = get_object_or_404(Address, id=address_id, user=request.user)
+        except (ValueError, Address.DoesNotExist):
+            messages.error(request, "Invalid address selected.")
+            return redirect('orders:checkout')
+
+        phone = request.POST.get('phone_number')
+        if not phone:
+            phone = request.user.profile.phone
+        if not phone:
+            messages.error(request, "Please provide a phone number.")
+            return redirect('orders:checkout')
+
         email = request.user.email
         notes = request.POST.get('notes', '')
         payment_method = request.POST.get('payment_method', 'cod')
 
+        # Get discount info from session
         discount = Decimal(request.session.get('discount', 0))
         promo_code_id = request.session.get('promo_code_id')
         promo_code_obj = None
@@ -195,12 +215,14 @@ def place_order_view(request):
                 promo_code_obj = None
                 discount = Decimal('0')
 
+        # Calculate totals
         subtotal = sum(item.product.price * item.quantity for item in cart.items.all())
         shipping_cost = Decimal('0.00') if subtotal >= 100 else Decimal('10.00')
         total = subtotal + shipping_cost - discount
         if total < 0:
             total = Decimal('0.00')
 
+        # Create the order
         order = Order.objects.create(
             user=request.user,
             address=address,
@@ -216,6 +238,7 @@ def place_order_view(request):
             payment_method=payment_method
         )
 
+        # Create order items
         for item in cart.items.all():
             OrderItem.objects.create(
                 order=order,
@@ -227,6 +250,7 @@ def place_order_view(request):
                 total=item.product.price * item.quantity,
             )
 
+        # Clean up
         cart.items.all().delete()
         request.session.pop('promo_code_id', None)
         request.session.pop('discount', None)
