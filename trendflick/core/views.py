@@ -15,7 +15,7 @@ def home(request):
     is_subscribed = False
     if request.user.is_authenticated:
         is_subscribed = NewsletterSubscription.objects.filter(email=request.user.email).exists()    # Get trending products
-    trending_products = Product.objects.filter(trending=True).order_by('?')[:8]
+    trending_products = Product.objects.filter(trending=True).order_by('?')[:12]
     
     # Get featured products
     featured_products = Product.objects.filter(featured=True).order_by('?')[:12]

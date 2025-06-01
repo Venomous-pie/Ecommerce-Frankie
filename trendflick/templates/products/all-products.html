@@ -119,7 +119,7 @@
                                     <div class="mt-auto d-flex gap-2 flex-wrap">
                                         {% if user.is_authenticated %}
                                             {% if product.in_cart %}
-                                                <button class="btn btn-success btn-sm flex-fill" disabled>In Cart</button>
+                                                <button class="btn btn-outline-dark btn-sm flex-fill" disabled>In Cart</button>
                                             {% else %}
                                                 <form method="post" action="{% url 'products:add_to_cart' product.id %}" class="flex-fill">
                                                     {% csrf_token %}

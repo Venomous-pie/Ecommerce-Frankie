@@ -79,7 +79,7 @@
                     <p class="card-text text-muted">{{ item.description|truncatewords:5 }}</p>
                     <p class="price mb-3">₱{{ item.price }}</p>
                     <div class="d-grid">
-                        <a href="{% url 'products:detail' item.id %}" class="btn btn-primary">
+                        <a href="{% url 'products:detail' item.id %}" class="btn btn-outline-dark">
                             <i class="bi bi-eye me-2"></i>View Product
                         </a>
                     </div>
@@ -112,7 +112,7 @@
                 </div>
             </div>
             <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
-                <button class="btn btn-success">
+                <button class="btn btn-outline-dark">
                     <i class="bi bi-cart-plus me-2"></i>Add All to Cart
                 </button>
             </div>
