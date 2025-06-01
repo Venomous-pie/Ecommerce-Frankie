@@ -183,7 +183,7 @@ def toggle_wishlist(request, pk):
 @login_required(login_url='users:login')
 @require_POST
 def clear_wishlist(request):
-    Wishlist.get(user=request.user).first().products.clear()
+    Wishlist.objects.filter(user=request.user).first().products.clear()
     return redirect('users:wishlist')
 
 def addresses_view(request):
