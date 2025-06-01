@@ -28,6 +28,7 @@ class Product(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     featured = models.BooleanField(default=False)
+    trending = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['-created_at']
